@@ -1,3 +1,4 @@
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
@@ -553,7 +554,7 @@ export const setAvailability = mutation({
 export const profileStatus = query({
   args: {},
   handler: async (ctx) => {
-    const userId = await import("@convex-dev/auth/server").then((m) => m.getAuthUserId(ctx));
+    const userId = await getAuthUserId(ctx);
     if (!userId) return null;
     const profile = await artisanProfileFor(ctx, userId);
     const request = await ctx.db

@@ -1,3 +1,4 @@
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import {
@@ -11,7 +12,7 @@ import { recordAudit } from "./lib/events";
 export const profiles = query({
   args: {},
   handler: async (ctx) => {
-    const userId = await import("@convex-dev/auth/server").then((m) => m.getAuthUserId(ctx));
+    const userId = await getAuthUserId(ctx);
     if (!userId) return null;
     const [customer, artisan] = await Promise.all([
       customerProfileFor(ctx, userId),
