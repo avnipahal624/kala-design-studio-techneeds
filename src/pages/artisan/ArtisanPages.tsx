@@ -196,10 +196,11 @@ export function ArtisanOnboarding() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  const introReady = form.intro.trim().length >= 30;
   const canContinue = step === 1
-    ? form.displayName.trim().length >= 2 && form.craftHeadline.trim().length >= 4 && form.city.trim().length >= 2 && form.serviceRegion.trim().length >= 2
+    ? form.displayName.trim().length >= 2 && form.craftHeadline.trim().length >= 4 && form.city.trim().length >= 2 && form.serviceRegion.trim().length >= 2 && introReady
     : step === 2
-      ? form.intro.trim().length >= 30 && form.skills.length > 0 && form.products.length > 0 && form.materials.length > 0
+      ? introReady && form.skills.length > 0 && form.products.length > 0 && form.materials.length > 0
       : true;
 
   async function submit() {
@@ -270,6 +271,12 @@ export function ArtisanOnboarding() {
               <ChipPicker options={PRODUCT_CAPABILITIES} value={form.products} onChange={(next) => set("products", next)} label="Products you can work on" />
               <ChipPicker options={MATERIALS} value={form.materials} onChange={(next) => set("materials", next)} label="Materials you are comfortable with" />
               <Notice>Your portfolio is separate and comes next. KALकारी never uses it to train AI without your explicit permission.</Notice>
+              {!introReady && (
+                <div className="flex flex-wrap items-center gap-2 rounded-lg border border-maroon/25 bg-maroon/[0.05] px-3 py-2 text-[11px] text-maroon">
+                  <span>Continue is paused because “About your work” on step 1 needs at least 30 characters.</span>
+                  <button type="button" className="font-semibold underline underline-offset-2" onClick={() => setStep(1)}>Go back to step 1</button>
+                </div>
+              )}
             </div>
           )}
 
