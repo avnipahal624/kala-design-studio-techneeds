@@ -12,7 +12,7 @@ interface AuthProps {
   redirectAfterAuth?: string;
 }
 
-function resolveRedirectAfterAuth(returnTo: string | null, fallback = "/dashboard") {
+function resolveRedirectAfterAuth(returnTo: string | null, fallback = "/customer/dashboard") {
   if (returnTo?.startsWith("/") && !returnTo.startsWith("//")) {
     return returnTo;
   }
@@ -90,18 +90,18 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
         <div className="relative flex flex-1 flex-col justify-between">
           <BrandLockup to="/" tone="ivory" size="md" />
 
-          <div className="max-w-[30ch]">
-            <p className="font-hindi-display text-sm text-saffron">अनेक हाथों की कारीगरी</p>
+          <div className="max-w-[32ch]">
+            <p className="font-hindi-display text-sm text-saffron">आपकी कल्पना, उनकी कारीगरी</p>
             <h1 className="mt-3 font-display text-5xl font-semibold leading-[1.05]">
               Your imagination.
               <br />
-              Their craft.
+              Their craftsmanship.
               <br />
-              <span className="text-saffron">One creation.</span>
+              <span className="text-saffron">A safer way to create.</span>
             </h1>
             <p className="mt-5 max-w-[38ch] text-sm leading-relaxed text-ivory/75">
-              Sign in to keep your inspirations, concepts and canvas versions together — private to
-              your account.
+              Sign in to post a customisation brief, quote for paid craft work, or follow a project
+              from concept to delivery.
             </p>
           </div>
 
@@ -109,7 +109,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
             <div className="space-y-2 text-[11px] text-ivory/65">
               <p className="flex items-center gap-2">
                 <ShieldCheck className="size-3.5 text-saffron" />
-                Server-side ownership checks on every design
+                Server-side role and project permission checks
               </p>
               <p className="flex items-center gap-2">
                 <ShieldCheck className="size-3.5 text-saffron" />
@@ -117,7 +117,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
               </p>
               <p className="flex items-center gap-2">
                 <ShieldCheck className="size-3.5 text-saffron" />
-                Immutable version history
+                Append-only KalaProof evidence timeline
               </p>
             </div>
             <Peacock className="size-48 shrink-0" />
@@ -150,10 +150,11 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                     Email sign-in
                   </span>
                   <h2 className="mt-3 font-display text-2xl font-semibold text-maroon">
-                    Enter the studio
+                    Enter KALकारी
                   </h2>
                   <p className="mt-1 text-sm leading-relaxed text-ink/60">
-                    We'll email you a six-digit code. No password to remember.
+                    We'll email you a six-digit code. Customers, artisans and reviewers use the same
+                    secure sign-in.
                   </p>
 
                   <form onSubmit={handleEmailSubmit} className="mt-5">
@@ -245,7 +246,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                       disabled={isLoading || otp.length !== 6}
                     >
                       {isLoading ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
-                      Verify and enter the studio
+                      Verify and continue
                     </Button>
                     <Button
                       type="button"
@@ -266,8 +267,8 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
             </div>
 
             <p className="mt-4 text-center text-[10px] leading-relaxed text-muted-foreground">
-              You keep ownership of every artwork you upload. KALAकारी makes no claim to
-              traditional craft motifs — they belong to the communities that carry them.
+              You keep ownership of the work you upload. KALकारी never trains on portfolios without
+              permission and makes no claim to traditional craft motifs.
             </p>
           </div>
         </div>

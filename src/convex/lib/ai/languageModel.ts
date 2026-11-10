@@ -22,8 +22,46 @@ type CompletionResponse = {
 
 const TIMEOUT_MS = 22_000;
 
+type ProviderConfig = {
+  key: string;
+  baseUrl: string;
+  model: string;
+  provider: "groq" | "vly-gateway";
+};
+
+/**
+ * Provider abstraction. Groq is preferred when `GROQ_API_KEY` is present;
+ * otherwise the existing OpenAI-compatible VLY gateway is used. No key means
+ * an honest "unavailable" result rather than fabricated content.
+ */
+export function resolveLanguageProvider(): ProviderConfig | null {
+  const groqKey = process.env.GROQ_API_KEY?.trim();
+  if (groqKey) {
+    return {
+      key: groqKey,
+      baseUrl: process.env.GROQ_BASE_URL ?? "https://api.groq.com/openai/v1",
+      model: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
+      provider: "groq",
+    };
+  }
+  const vlyKey = process.env.VLY_INTEGRATION_KEY?.trim();
+  if (vlyKey) {
+    return {
+      key: vlyKey,
+      baseUrl: process.env.VLY_AI_BASE_URL ?? "https://integrations.vly.ai/v1/llm",
+      model: "gpt-4o-mini",
+      provider: "vly-gateway",
+    };
+  }
+  return null;
+}
+
 export function languageModelConfigured() {
-  return Boolean(process.env.VLY_INTEGRATION_KEY);
+  return Boolean(resolveLanguageProvider());
+}
+
+export function languageProviderName() {
+  return resolveLanguageProvider()?.provider ?? null;
 }
 
 export async function completeJson<T>(
@@ -31,18 +69,15 @@ export async function completeJson<T>(
   schema: z.ZodType<T>,
   options: { model?: string; timeoutMs?: number; maxTokens?: number } = {},
 ): Promise<ModelResult<T>> {
-  const key = process.env.VLY_INTEGRATION_KEY;
-  if (!key) {
+  const config = resolveLanguageProvider();
+  if (!config) {
     return {
       status: "unavailable",
       reason: "No language-model provider is configured for this deployment.",
     };
   }
-
-  // VLY's AI gateway is OpenAI-compatible.
-  const baseUrl =
-    process.env.VLY_AI_BASE_URL ?? "https://integrations.vly.ai/v1/llm";
-  const model = options.model ?? "gpt-4o-mini";
+  const { key, baseUrl, provider } = config;
+  const model = options.model ?? config.model;
   const started = Date.now();
 
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -107,7 +142,7 @@ export async function completeJson<T>(
       status: "ok",
       data: validated.data,
       model,
-      provider: "vly-gateway",
+      provider,
       latencyMs: Date.now() - started,
     };
   } catch (error) {
