@@ -1,0 +1,207 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=Yatra+One&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap");
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* KALकारी palette */
+  --color-maroon: #7b2040;
+  --color-maroon-deep: #5c1830;
+  --color-vermilion: #d94b39;
+  --color-saffron: #f2a33a;
+  --color-teal: #087f83;
+  --color-teal-deep: #056065;
+  --color-rani: #e66a99;
+  --color-indigo: #343e87;
+  --color-emerald: #25765a;
+  --color-gold: #c49a55;
+  --color-ivory: #fff4de;
+  --color-ink: #292322;
+  --color-terracotta: #b65a3c;
+  --color-coral: #f17d68;
+  --color-marigold: #f4bd42;
+  --color-mint: #d8f0e9;
+  --color-lavender: #e7e0f4;
+  --color-peach: #f7d5bb;
+  --color-parchment: #fff9ef;
+
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-body: "DM Sans", "Helvetica Neue", sans-serif;
+  --font-hindi-display: "Yatra One", "Noto Sans Devanagari", serif;
+  --font-hindi: "Noto Sans Devanagari", "DM Sans", sans-serif;
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: #fff9ef;
+  --foreground: #292322;
+  --card: #fffdf8;
+  --card-foreground: #292322;
+  --popover: #fffdf8;
+  --popover-foreground: #292322;
+  --primary: #7b2040;
+  --primary-foreground: #fff4de;
+  --secondary: #f7e3c6;
+  --secondary-foreground: #5c1830;
+  --muted: #f7ecd9;
+  --muted-foreground: #7a6558;
+  --accent: #087f83;
+  --accent-foreground: #fff4de;
+  --destructive: #b3261e;
+  --border: #e8d3b4;
+  --input: #e3ccab;
+  --ring: #d94b39;
+  --chart-1: #7b2040;
+  --chart-2: #087f83;
+  --chart-3: #f2a33a;
+  --chart-4: #343e87;
+  --chart-5: #e66a99;
+  --sidebar: #6b1a37;
+  --sidebar-foreground: #ffe9cf;
+  --sidebar-primary: #f2a33a;
+  --sidebar-primary-foreground: #40101f;
+  --sidebar-accent: #82213f;
+  --sidebar-accent-foreground: #ffe9cf;
+  --sidebar-border: #8a2a48;
+  --sidebar-ring: #f2a33a;
+}
+
+.dark {
+  --background: #211a19;
+  --foreground: #fff4de;
+  --card: #2b2221;
+  --card-foreground: #fff4de;
+  --popover: #2b2221;
+  --popover-foreground: #fff4de;
+  --primary: #f2a33a;
+  --primary-foreground: #3d1222;
+  --secondary: #3a2d2a;
+  --secondary-foreground: #fff4de;
+  --muted: #3a2d2a;
+  --muted-foreground: #d8c2ac;
+  --accent: #34c3c0;
+  --accent-foreground: #12312f;
+  --destructive: #ff8a7a;
+  --border: #4a3934;
+  --input: #4a3934;
+  --ring: #f2a33a;
+  --sidebar: #2b2221;
+  --sidebar-foreground: #fff4de;
+  --sidebar-primary: #f2a33a;
+  --sidebar-primary-foreground: #3d1222;
+  --sidebar-accent: #3a2d2a;
+  --sidebar-accent-foreground: #fff4de;
+  --sidebar-border: #4a3934;
+  --sidebar-ring: #f2a33a;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    font-feature-settings: "ss01" on;
+  }
+  button:not([disabled]),
+  [role="button"]:not([disabled]) {
+    cursor: pointer;
+  }
+  ::selection {
+    background: #f2a33a;
+    color: #40101f;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .font-hindi {
+    font-family: var(--font-hindi);
+  }
+  .font-hindi-display {
+    font-family: var(--font-hindi-display);
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .craft-paper {
+    background-image:
+      radial-gradient(circle at 15% 12%, rgba(242, 163, 58, 0.14), transparent 42%),
+      radial-gradient(circle at 88% 4%, rgba(8, 127, 131, 0.12), transparent 38%),
+      radial-gradient(circle at 70% 90%, rgba(230, 106, 153, 0.1), transparent 40%);
+  }
+  .craft-grain {
+    background-image: radial-gradient(rgba(41, 35, 34, 0.16) 0.6px, transparent 0.6px);
+    background-size: 5px 5px;
+  }
+  .ink-border {
+    box-shadow: inset 0 0 0 1px rgba(123, 32, 64, 0.16);
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}
+
+/* Subtle woven texture used behind editorial sections */
+.weave {
+  background-image:
+    repeating-linear-gradient(45deg, rgba(123, 32, 64, 0.035) 0 1px, transparent 1px 12px),
+    repeating-linear-gradient(-45deg, rgba(8, 127, 131, 0.035) 0 1px, transparent 1px 12px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
