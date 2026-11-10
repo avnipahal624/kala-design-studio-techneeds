@@ -361,7 +361,7 @@ export function ProjectWorkspace({ projectId }: { projectId: Id<"projects"> }) {
                 ))}
               </div>
 
-              {isArtisan && !approvedConcept && (project.status === "funded" || project.status === "awaiting_payment") && (
+              {isArtisan && !approvedConcept && project.status === "funded" && (
                 <div className="mt-4 space-y-2 rounded-xl border border-teal/20 bg-teal/[0.04] p-3">
                   <p className="text-xs font-semibold text-teal-deep">Upload your own sketch, colour study or placement mockup</p>
                   <input value={conceptTitle} onChange={(event) => setConceptTitle(event.target.value)} placeholder="Concept title" className="h-8 w-full rounded-md border border-maroon/20 bg-card px-2 text-xs" />
