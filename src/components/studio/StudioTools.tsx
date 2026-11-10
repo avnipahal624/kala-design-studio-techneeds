@@ -76,7 +76,7 @@ export function StudioTools({
   onSelectLayer: (id: string | null) => void;
   onApplyPalette: (colors: string[]) => void;
 }) {
-  const [textDraft, setTextDraft] = useState("KALकारी");
+  const [textDraft, setTextDraft] = useState("KALAकारी");
   const [font, setFont] = useState(FONT_OPTIONS[0].value);
   const [motifFocus, setMotifFocus] = useState<string | null>(null);
 

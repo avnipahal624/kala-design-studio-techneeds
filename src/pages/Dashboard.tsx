@@ -21,9 +21,9 @@ import { Link, useNavigate } from "react-router";
 
 function greeting() {
   const hour = new Date().getHours();
-  if (hour < 12) return "Suprabhat";
-  if (hour < 17) return "Namaste";
-  return "Shubh sandhya";
+  if (hour < 12) return "सुप्रभात";
+  if (hour < 17) return "नमस्ते";
+  return "शुभ संध्या";
 }
 
 export default function Dashboard() {

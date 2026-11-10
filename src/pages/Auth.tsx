@@ -91,7 +91,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
           <BrandLockup to="/" tone="ivory" size="md" />
 
           <div className="max-w-[30ch]">
-            <p className="font-hindi-display text-sm text-saffron">क्राफ्टेड बाय मेनी</p>
+            <p className="font-hindi-display text-sm text-saffron">अनेक हाथों की कारीगरी</p>
             <h1 className="mt-3 font-display text-5xl font-semibold leading-[1.05]">
               Your imagination.
               <br />
@@ -245,7 +245,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                       disabled={isLoading || otp.length !== 6}
                     >
                       {isLoading ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
-                      Verify & enter studio
+                      Verify and enter the studio
                     </Button>
                     <Button
                       type="button"
@@ -266,8 +266,8 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
             </div>
 
             <p className="mt-4 text-center text-[10px] leading-relaxed text-muted-foreground">
-              By continuing you agree to keep uploaded artwork yours to share. KALकारी does not
-              claim ownership of traditional craft motifs.
+              You keep ownership of every artwork you upload. KALAकारी makes no claim to
+              traditional craft motifs — they belong to the communities that carry them.
             </p>
           </div>
         </div>

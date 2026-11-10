@@ -11,7 +11,7 @@ export default function NotFound() {
         This thread leads nowhere
       </h1>
       <p className="mt-3 max-w-sm text-sm leading-relaxed text-ink/60">
-        The page you asked for isn't part of the KALकारी studio. Head back to your creations and
+        The page you asked for isn't part of the KALAकारी studio. Head back to your creations and
         pick up where you left off.
       </p>
       <div className="mt-6 flex gap-2">

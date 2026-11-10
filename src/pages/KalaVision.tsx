@@ -873,7 +873,9 @@ export default function KalaVision() {
                           <span className="text-[9px] font-semibold text-maroon/50">0{index + 1}</span>
                           <p className="mt-0.5 text-[11px] font-semibold text-ink">{stage.name}</p>
                           <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{stage.detail}</p>
-                          <p className="mt-1.5 text-[10px] font-medium text-teal">≈ {stage.days} day(s)</p>
+                          <p className="mt-1.5 text-[10px] font-medium text-teal">
+                            ≈ {stage.days} {stage.days === 1 ? "day" : "days"}
+                          </p>
                         </div>
                       ))}
                     </div>

@@ -1,11 +1,11 @@
 {
-  "name": "freebuff.com application",
-  "short_name": "freebuff.com",
-  "description": "freebuff.com application",
+  "name": "KALAकारी — Crafted by Many. Made for You.",
+  "short_name": "KALAकारी",
+  "description": "An AI-guided Indian craft studio for personalised designs.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#fff9ef",
+  "theme_color": "#7b2040",
   "icons": [
     {
       "src": "/logo.svg",

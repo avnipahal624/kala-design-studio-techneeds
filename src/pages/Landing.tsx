@@ -193,7 +193,7 @@ export default function Landing() {
               <p className="mt-6 max-w-[52ch] text-[15px] leading-relaxed text-ink/70 md:text-base">
                 Design something uniquely yours. Upload an inspiration image, capture its
                 colour story, and shape a real design concept on a canvas built for Indian
-                craft — <span className="font-medium text-ink">क्राफ्टेड बाय मेनी, मेड फ़ॉर यू.</span>
+                craft — <span lang="hi" className="font-medium text-ink">अनेक हाथों की कारीगरी, सिर्फ़ आपके लिए।</span>
               </p>
             </Reveal>
 
@@ -223,7 +223,7 @@ export default function Landing() {
               <dl className="mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-maroon/12 pt-6">
                 {[
                   ["12", "craft traditions"],
-                  ["48", "original motifs"],
+                  ["12", "original motifs"],
                   ["5", "garment formats"],
                 ].map(([value, label]) => (
                   <div key={label}>
@@ -531,14 +531,30 @@ export default function Landing() {
             <Reveal>
               <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal">Our ethos</span>
               <h2 className="mt-3 font-display text-4xl font-semibold leading-[1.1] text-maroon md:text-[3.2rem]">
-                Crafted by many.
+                Crafted by Many.
                 <br />
-                <span className="font-hindi-display text-vermilion">मेड फ़ॉर यू.</span>
+                <span className="font-hindi-display text-vermilion">सिर्फ़ आपके लिए।</span>
               </h2>
             </Reveal>
             <Reveal delay={0.08}>
+              <div className="mt-5 rounded-xl border border-gold/45 bg-card/60 px-4 py-3">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-teal">
+                  The name
+                </p>
+                <p className="mt-1.5 font-display text-base leading-relaxed text-ink/75">
+                  <span lang="hi" className="font-hindi-display text-[1.2em] leading-none text-vermilion">
+                    कला
+                  </span>{" "}
+                  is art;{" "}
+                  <span lang="hi" className="font-hindi-display text-[1.2em] leading-none text-vermilion">
+                    कारी
+                  </span>{" "}
+                  is the making of it. Together they name what this studio exists for:{" "}
+                  <span className="font-semibold text-maroon">artistry</span>.
+                </p>
+              </div>
               <p className="mt-5 text-sm leading-relaxed text-ink/70 md:text-base">
-                Every motif in this studio is drawn for KALकारी. Where a pattern belongs to a
+                Every motif in this studio is drawn for KALAकारी. Where a pattern belongs to a
                 living tradition, we name the tradition, record the artisan contribution and
                 keep a permissions trail. AI proposes; people decide.
               </p>
@@ -592,8 +608,8 @@ export default function Landing() {
           <div>
             <Wordmark size="sm" />
             <p className="mt-2 max-w-[38ch] text-[11px] leading-relaxed text-muted-foreground">
-              KALकारी · Crafted by Many. Made for You. A version-1 studio for AI-guided
-              Indian craft customisation.
+              KALAकारी · Crafted by Many. Made for You. An AI-guided Indian craft studio, in
+              its first version.
             </p>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-ink/60">

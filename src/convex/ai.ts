@@ -162,7 +162,7 @@ export const generateConceptNarrative = action({
         {
           role: "system",
           content:
-            "You are a craft production assistant for KALकारी, an Indian craft collaboration platform. " +
+            "You are a craft production assistant for KALAकारी, an Indian craft customisation studio. " +
             "Describe designs respectfully and precisely. Never invent prices, delivery dates, artisan names, " +
             "order statuses or verification claims. Traditional motifs are shared cultural material; do not assert " +
             "ownership. Reply with JSON only: {\"narrative\": string, \"craftNotes\": string, \"caution\": string}. " +

@@ -57,7 +57,7 @@ const schema = defineSchema(
 
       role: v.optional(roleValidator), // role of the user. do not remove
 
-      // KALकारी profile — reference preferences only, no sensitive data.
+      // KALAकारी profile — reference preferences only, no sensitive data.
       displayName: v.optional(v.string()),
       language: v.optional(v.string()),
       craftInterests: v.optional(v.array(v.string())),

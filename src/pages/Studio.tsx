@@ -835,7 +835,7 @@ export default function Studio() {
                     </g>
 
                     <text x={450} y={40} textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="13" letterSpacing="4" fill="#7b2040" opacity="0.45">
-                      {canvas.silhouette.toUpperCase()} · KALकारी STUDIO
+                      {canvas.silhouette.toUpperCase()} · KALAकारी STUDIO
                     </text>
 
                     <path

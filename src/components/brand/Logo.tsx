@@ -34,12 +34,16 @@ export function Wordmark({
   };
   return (
     <span
-      className={`inline-flex items-baseline gap-1 font-display leading-none tracking-tight ${sizes[size]} ${
+      className={`inline-flex items-baseline gap-[0.1em] font-display leading-none tracking-tight ${sizes[size]} ${
         tone === "ivory" ? "text-ivory" : "text-maroon"
       } ${className}`}
     >
-      <span className="font-semibold">KAL</span>
-      <span className="font-hindi-display text-[1.05em] leading-none">कारी</span>
+      <span lang="en" className="font-semibold tracking-[0.01em]">
+        KALA
+      </span>
+      <span lang="hi" className="font-hindi-display text-[1.02em] leading-none">
+        कारी
+      </span>
     </span>
   );
 }
@@ -59,7 +63,7 @@ export function BrandLockup({
     <Link
       to={to}
       className={`group flex items-center gap-2.5 ${className}`}
-      aria-label="KALकारी home"
+      aria-label="KALAकारी home"
     >
       <LogoMark className={`${size === "lg" ? "size-12" : "size-8"} shrink-0 transition-transform duration-500 group-hover:rotate-45`} />
       <span className="flex flex-col">
@@ -70,7 +74,7 @@ export function BrandLockup({
               tone === "ivory" ? "text-ivory/70" : "text-muted-foreground"
             }`}
           >
-            Crafted by many. Made for you.
+            Crafted by Many. Made for You.
           </span>
         )}
       </span>
