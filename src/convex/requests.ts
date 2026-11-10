@@ -76,6 +76,9 @@ async function findMatches(ctx: MutationCtx, request: Doc<"customerRequests">) {
     previewStorageId: Id<"_storage"> | null;
   }[] = [];
   for (const profile of profiles) {
+    // Demo profiles are for directory display only; they must never create the
+    // impression that a real artisan is available for this brief.
+    if (profile.sampleLabel) continue;
     if (profile.verificationStatus === "suspended") continue;
     const items = await ctx.db
       .query("portfolioItems")

@@ -160,7 +160,7 @@ export function AppShell({
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-[280px] border-maroon-deep p-0">
-                  <SheetTitle className="sr-only">KALAकारी navigation</SheetTitle>
+                  <SheetTitle className="sr-only">KALकारी navigation</SheetTitle>
                   <SidebarInner onNavigate={() => setOpen(false)} />
                 </SheetContent>
               </Sheet>

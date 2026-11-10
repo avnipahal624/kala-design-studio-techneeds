@@ -80,6 +80,23 @@ export const myPaymentHistory = query({
   },
 });
 
+export const myPayouts = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await requireMarketplaceUser(ctx);
+    const payouts = await ctx.db
+      .query("payouts")
+      .withIndex("by_artisan", (q) => q.eq("artisanId", user._id))
+      .take(50);
+    return await Promise.all(
+      payouts.map(async (payout) => {
+        const project = await ctx.db.get(payout.projectId);
+        return { ...payout, projectTitle: project?.title ?? "Project" };
+      }),
+    );
+  },
+});
+
 export const createSandboxOrder = mutation({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {

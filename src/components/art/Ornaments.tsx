@@ -1,5 +1,5 @@
 /**
- * Decorative folk-art artwork for KALAकारी: mandala compositions, a peacock
+ * Decorative folk-art artwork for KALकारी: mandala compositions, a peacock
  * illustration, dividers and borders. All original vector work in an
  * Indian-craft-inspired idiom — used decoratively, not as documentation of a
  * specific tradition.

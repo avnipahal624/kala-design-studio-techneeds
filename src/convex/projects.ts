@@ -298,7 +298,7 @@ export const approveConcept = mutation({
     await notifyUser(ctx, project.artisanId, {
       type: "concept.approved",
       title: "Concept approved",
-      body: "The customer approved your concept. Next step is the protected payment.",
+      body: "The customer approved your concept. Start production when you are ready; every update goes into KalaProof.",
       href: `/artisan/projects/${args.projectId}`,
     });
     return { ok: true as const };

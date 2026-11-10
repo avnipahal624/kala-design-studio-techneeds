@@ -265,7 +265,7 @@ export function ProjectWorkspace({ projectId }: { projectId: Id<"projects"> }) {
                   {busy === "live" ? <Loader2 className="size-4 animate-spin" /> : <CreditCard className="size-4" />}
                   Pay {formatInr(project.amountInr)} securely
                 </Button>
-              ) : (
+              ) : paymentConfig?.mode === "sandbox" ? (
                 <div className="mt-3 rounded-xl border border-saffron/40 bg-saffron/[0.08] p-3">
                   <p className="flex items-center gap-1.5 text-xs font-semibold text-[#7a4f10]">
                     <ShieldCheck className="size-3.5" /> Sandbox demonstration — no money moves
@@ -282,6 +282,10 @@ export function ProjectWorkspace({ projectId }: { projectId: Id<"projects"> }) {
                     Record sandbox payment
                   </Button>
                 </div>
+              ) : (
+                <p className="mt-3 rounded-lg border border-maroon/15 bg-parchment px-3 py-2 text-xs text-muted-foreground">
+                  Checking the configured payment mode…
+                </p>
               )}
               <button
                 type="button"

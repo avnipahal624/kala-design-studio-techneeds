@@ -4,7 +4,7 @@ import type { CanvasState, DesignLayer } from "@/lib/design-types";
 import { darken, lighten, readableInk } from "@/lib/craft-engine";
 
 /**
- * Flat-lay garment silhouettes drawn for KALAकारी. They are intentionally
+ * Flat-lay garment silhouettes drawn for KALकारी. They are intentionally
  * stylised studio illustrations rather than photographs, so a design reads as
  * a design concept rather than a finished product.
  */
@@ -209,7 +209,7 @@ export function LayerShape({
           fill={layer.color}
           letterSpacing="2"
         >
-          {layer.text || "KALAकारी"}
+          {layer.text || "KALकारी"}
         </text>
       </g>
     );

@@ -256,7 +256,11 @@ export const dashboard = query({
       profile.verificationStatus === "verified",
     ];
     return {
-      profile: publicArtisan(profile),
+      profile: {
+        ...publicArtisan(profile),
+        weeklyCapacity: profile.weeklyCapacity,
+        workingHours: profile.workingHours ?? null,
+      },
       counts: {
         activeProjects: active.length,
         pendingQuotes: pendingQuotes.length,
@@ -386,6 +390,7 @@ export const matchesForRequest = query({
     const results = [];
     for (const profile of profiles) {
       if (profile.userId === user._id) continue;
+      if (profile.sampleLabel) continue;
       if (profile.verificationStatus === "suspended") continue;
       const tags = await ctx.db
         .query("portfolioItems")

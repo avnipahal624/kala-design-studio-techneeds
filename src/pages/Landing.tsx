@@ -1,108 +1,43 @@
-import { Motif as MotifGlyph } from "@/components/art/Motif";
+import { api } from "@/convex/_generated/api";
 import { CornerFlourish, Divider, Mandala, Peacock, VineBorder } from "@/components/art/Ornaments";
-import { GarmentArt } from "@/components/art/garments";
 import { BrandLockup, Wordmark } from "@/components/brand/Logo";
+import { ArtisanCard } from "@/components/marketplace/ArtisanCard";
+import { PublicShell } from "@/components/public/PublicShell";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
-import { CRAFTS, MOTIFS } from "@/lib/crafts";
-import { buildCanvas } from "@/lib/craft-engine";
-import type { Concept } from "@/lib/design-types";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { CRAFT_SKILLS, CRAFT_TRADITIONS, REQUEST_CATEGORIES, formatInr } from "@/lib/marketplace";
+import { useQuery } from "convex/react";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
+  BadgeCheck,
   Camera,
-  Download,
-  Layers,
-  Palette,
-  PenTool,
+  CheckCircle2,
+  FileText,
+  Hammer,
+  Hand,
+  Handshake,
+  Languages,
+  Lock,
+  MessageSquare,
+  PackageCheck,
+  PenLine,
+  ScanText,
   ShieldCheck,
   Sparkles,
-  Wand2,
+  Truck,
+  Users,
 } from "lucide-react";
-import { useState } from "react";
 import { Link } from "react-router";
 
-const heroConcept: Concept = {
-  title: "Marigold Madhubani Jacket",
-  summary: "Open-front jacket with a fish-pair centre and marigold accents.",
-  craftId: "madhubani",
-  productType: "jacket",
-  palette: ["#7b2040", "#f2a33a", "#087f83", "#fff4de", "#292322"],
-  motifIds: ["fish", "marigold", "border"],
-  placement: "Centre-front with paired chest motifs",
-  rationale: [],
-  materials: [],
-  stages: [],
-  complexity: "Considered",
-  complexityScore: 54,
-  confidence: 70,
-  missingInfo: [],
-  caveats: [],
-  source: "rules",
-};
-
-const heroCanvas = buildCanvas(heroConcept);
-
-const HERO_CHIPS = [
-  { label: "Palette extracted", value: "5 colours", color: "#087f83" },
-  { label: "Craft suggestion", value: "Madhubani", color: "#7b2040" },
-  { label: "Motif families", value: "3", color: "#d94b39" },
-];
-
-const steps = [
-  {
-    icon: Camera,
-    title: "Show us the spark",
-    hindi: "प्रेरणा",
-    body: "Upload a fabric photo, a scroll-stopping outfit, a family heirloom. We measure its palette, contrast and pattern density on your device — no guesswork about what the image contains.",
-  },
-  {
-    icon: Wand2,
-    title: "Get a real concept",
-    hindi: "कल्पना",
-    body: "The craft engine turns those measurements into a craft direction, motif set and placement plan. Every suggestion is labelled as a suggestion, with its own reasoning.",
-  },
-  {
-    icon: PenTool,
-    title: "Make it yours",
-    hindi: "रचना",
-    body: "Open the design studio: move motifs, recolour, add type, flip fabrics, save versions. What you export is the exact artwork you see.",
-  },
-];
-
-const studioFeatures = [
-  { icon: Layers, title: "Layered canvas", body: "Motifs and type as movable, stackable layers." },
-  { icon: Palette, title: "Fabric & palette", body: "Six fabric grounds with woven pattern overlays." },
-  { icon: Sparkles, title: "Craft-aware guidance", body: "Rule-based notes on hand-work, materials and stages." },
-  { icon: Download, title: "Export a preview", body: "Download your artwork as a clean 1200px PNG." },
-];
-
-const demoCanvas = (() => {
-  const concept: Concept = {
-    ...heroConcept,
-    craftId: "phulkari",
-    palette: ["#d94b39", "#f2a33a", "#e66a99", "#fff4de", "#292322"],
-    motifIds: ["marigold", "mirror", "sprig"],
-    productType: "tote",
-  };
-  return buildCanvas(concept);
-})();
-
-function Reveal({
-  children,
-  delay = 0,
-  className = "",
-}: {
-  children: React.ReactNode;
-  delay?: number;
-  className?: string;
-}) {
+function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   const reduce = useReducedMotion();
   return (
     <motion.div
-      initial={reduce ? false : { opacity: 0, y: 22 }}
+      initial={reduce ? false : { opacity: 0, y: 20 }}
       whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }}
+      viewport={{ once: true, margin: "-70px" }}
+      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
       className={className}
     >
       {children}
@@ -110,516 +45,440 @@ function Reveal({
   );
 }
 
+const CUSTOMER_STEPS = [
+  { icon: PenLine, title: "Describe it", body: "Add the product, budget, deadline, references and the parts that must not change. KalaVision turns a messy note into a structured brief — you approve every field." },
+  { icon: Users, title: "Choose the maker", body: "CraftFit matches the brief to skills, materials and capacity. Compare quotes, timelines and portfolios, then invite anyone you like. No pay-to-rank." },
+  { icon: Handshake, title: "Approve before making", body: "Your artisan uploads their own concept. You request changes or approve it. Work only starts after the concept is agreed." },
+];
+
+const ARTISAN_STEPS = [
+  { icon: ScanText, title: "Build a CraftFit profile", body: "Skills, crafts, materials, languages, capacity and rates. Your portfolio is never used to train AI, and nothing is published without your say." },
+  { icon: Hammer, title: "Quote matched work", body: "See briefs that genuinely fit your craft. Send a clear quote: making, materials, timeline, revisions. You are paid for quoted work." },
+  { icon: PackageCheck, title: "Make and document", body: "Upload progress to KalaProof, get milestones approved, hand over the piece. Payout is released after customer confirmation." },
+];
+
+const PROTECTIONS = [
+  { icon: Lock, title: "Protected payments", body: "Payments are held against a project state machine. Payout is released only after handover and customer confirmation — or an admin decision." },
+  { icon: BadgeCheck, title: "Honest verification", body: "“Verified” means documents were checked. Unverified and sample profiles say so. We never invent badges, reviews or completed order counts." },
+  { icon: FileText, title: "KalaProof timeline", body: "Concepts, approvals, payments, progress and handover are recorded as append-only evidence. No quiet edits." },
+  { icon: ShieldCheck, title: "A real dispute path", body: "Open a dispute with evidence. Both sides respond. A person reviews it and records a decision you can appeal." },
+];
+
+const FAQS = [
+  ["Does KALकारी generate the artwork with AI?", "No. AI is used to understand your brief, describe craft skills, match artisans, translate, explain pricing and plan production. Every concept you approve is made and uploaded by an artisan — not generated, and never presented as handmade."],
+  ["Will my uploaded photos be used to train AI?", "No. References are used for your brief and shared only with artisans you choose. Portfolios are never used for model training without explicit permission."],
+  ["What does “verified artisan” actually mean?", "That identity and craft documents were reviewed by an admin. It is not a guarantee of outcomes or a quality rating. Profiles that are pending or unverified are labelled that way everywhere they appear."],
+  ["When does the artisan get paid?", "The customer pays into the project first. The artisan sees the project is funded before starting. Payout is created on completion and transferred after the review window — the platform fee is shown before anyone commits."],
+  ["Can I choose an artisan who wasn’t matched to me?", "Yes. Browse the directory and invite any artisan whose craft fits. Matching is a starting point, not a gate."],
+  ["What if the piece isn’t what was approved?", "Request a revision first. If that fails, open a dispute with the approved concept and KalaProof evidence attached. Payment release pauses while it is reviewed."],
+];
+
 export default function Landing() {
-  const { isAuthenticated, user } = useAuth();
-  const [activeCraft, setActiveCraft] = useState(0);
-  const craft = CRAFTS[activeCraft];
+  const { isAuthenticated } = useAuth();
+  const artisans = useQuery(api.artisans.directory, { limit: 3 });
+  const requestCta = isAuthenticated ? "/customer/create-request" : "/auth?returnTo=%2Fcustomer%2Fcreate-request";
+  const artisanCta = isAuthenticated ? "/artisan/jobs" : "/auth?returnTo=%2Fartisan%2Fonboarding";
 
   return (
-    <div className="min-h-screen bg-parchment text-ink">
-      {/* ---------------------------------------------------------------- nav */}
-      <header className="sticky top-0 z-40 border-b border-gold/25 bg-parchment/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-4 py-3 md:px-8">
-          <BrandLockup size="md" />
-          <nav className="hidden items-center gap-7 text-sm text-ink/70 md:flex">
-            <a href="#crafts" className="transition-colors hover:text-maroon">Crafts</a>
-            <a href="#journey" className="transition-colors hover:text-maroon">How it works</a>
-            <a href="#studio" className="transition-colors hover:text-maroon">The Studio</a>
-            <a href="#ethos" className="transition-colors hover:text-maroon">Our ethos</a>
-          </nav>
-          <div className="flex items-center gap-2">
-            {isAuthenticated ? (
-              <Link
-                to="/dashboard"
-                className="inline-flex items-center gap-2 rounded-full bg-maroon px-4 py-2 text-sm font-medium text-ivory transition-colors hover:bg-maroon-deep"
-              >
-                {user?.name ? `नमस्ते, ${user.name.split(" ")[0]}` : "Your studio"}
-                <ArrowRight className="size-4" />
-              </Link>
-            ) : (
-              <>
-                <Link
-                  to="/auth"
-                  className="hidden rounded-full px-4 py-2 text-sm font-medium text-maroon transition-colors hover:bg-maroon/5 sm:inline-flex"
-                >
-                  Sign in
-                </Link>
-                <Link
-                  to="/auth?returnTo=%2Fdashboard"
-                  className="inline-flex items-center gap-1.5 rounded-full bg-maroon px-4 py-2 text-sm font-medium text-ivory transition-colors hover:bg-maroon-deep"
-                >
-                  Start creating
-                  <ArrowRight className="size-4" />
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-        <VineBorder className="h-2 w-full opacity-60" />
-      </header>
-
-      {/* --------------------------------------------------------------- hero */}
+    <PublicShell>
+      {/* hero */}
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 craft-paper" />
-        <div className="pointer-events-none absolute -right-40 -top-32 opacity-[0.14]">
+        <div className="pointer-events-none absolute -right-40 -top-40 opacity-[0.12]">
           <Mandala className="size-[620px]" />
         </div>
-        <div className="pointer-events-none absolute -left-52 top-64 opacity-[0.08]">
-          <Mandala className="size-[520px]" colors={["#343e87", "#f2a33a", "#7b2040", "#087f83", "#c49a55"]} />
+        <div className="pointer-events-none absolute -left-48 top-80 opacity-[0.07]">
+          <Mandala className="size-[500px]" colors={["#343e87", "#f2a33a", "#7b2040", "#087f83", "#c49a55"]} />
         </div>
 
-        <div className="relative mx-auto grid max-w-[1280px] items-center gap-10 px-4 pb-14 pt-10 md:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14 lg:pb-24 lg:pt-16">
+        <div className="relative mx-auto grid max-w-[1320px] items-center gap-12 px-4 pb-14 pt-10 md:px-8 lg:grid-cols-[1.02fr_0.98fr] lg:gap-16 lg:pb-24 lg:pt-16">
           <div>
             <Reveal>
-              <span className="inline-flex items-center gap-2 rounded-full border border-teal/25 bg-teal/5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-teal">
+              <span className="inline-flex items-center gap-2 rounded-full border border-teal/25 bg-teal/[0.06] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-teal">
                 <span className="size-1.5 rounded-full bg-vermilion" />
-                AI-guided Indian craft studio
+                An artisan-first customisation marketplace
               </span>
             </Reveal>
-
-            <Reveal delay={0.08}>
-              <h1 className="mt-5 max-w-[15ch] font-display text-[2.6rem] font-semibold leading-[1.02] tracking-tight text-maroon sm:text-6xl lg:text-[4.4rem]">
-                Your imagination.
+            <Reveal delay={0.06}>
+              <h1 className="mt-5 max-w-[13ch] font-display text-[2.75rem] font-semibold leading-[0.98] tracking-tight text-maroon sm:text-6xl lg:text-[4.5rem]">
+                Your Imagination.
                 <br />
-                <span className="text-vermilion">Their craft.</span>
-                <br />
-                One extraordinary
-                <br />
-                creation.
+                <span className="text-vermilion">Their Craftsmanship.</span>
               </h1>
             </Reveal>
-
-            <Reveal delay={0.16}>
-              <p className="mt-6 max-w-[52ch] text-[15px] leading-relaxed text-ink/70 md:text-base">
-                Design something uniquely yours. Upload an inspiration image, capture its
-                colour story, and shape a real design concept on a canvas built for Indian
-                craft — <span lang="hi" className="font-medium text-ink">अनेक हाथों की कारीगरी, सिर्फ़ आपके लिए।</span>
+            <Reveal delay={0.12}>
+              <p className="mt-6 max-w-[50ch] text-[15px] leading-relaxed text-ink/70 md:text-base">
+                One-of-one pieces should not begin with a chatbot drawing. They begin with your idea,
+                a real artisan, and an agreement both sides can see. KALकारी connects the two — and
+                documents every step from first sketch to final handover.
               </p>
             </Reveal>
-
-            <Reveal delay={0.24}>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Link
-                  to={isAuthenticated ? "/kalavision" : "/auth?returnTo=%2Fkalavision"}
-                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-maroon px-6 py-3.5 text-sm font-semibold text-ivory transition-all hover:bg-maroon-deep"
-                >
-                  Upload an inspiration
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+            <Reveal delay={0.18}>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Link to={requestCta} className="group inline-flex items-center justify-center gap-2 rounded-full bg-maroon px-6 py-3.5 text-sm font-semibold text-ivory transition hover:bg-maroon-deep">
+                  Customise Something <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
-                <a
-                  href="#crafts"
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-maroon/25 bg-card px-6 py-3.5 text-sm font-semibold text-maroon transition-colors hover:border-maroon/50 hover:bg-ivory"
-                >
-                  Explore the craft library
-                </a>
+                <Link to={artisanCta} className="inline-flex items-center justify-center gap-2 rounded-full border border-teal/35 bg-card px-6 py-3.5 text-sm font-semibold text-teal-deep transition hover:border-teal/70 hover:bg-mint/40">
+                  <Hand className="size-4" /> Find Craft Work
+                </Link>
               </div>
               <p className="mt-3 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <ShieldCheck className="size-3.5" />
-                Your uploads stay private to your account. No credit card needed.
+                <ShieldCheck className="size-3.5" /> No AI artwork. No hidden fees. Your idea stays yours.
               </p>
             </Reveal>
-
-            <Reveal delay={0.32}>
-              <dl className="mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-maroon/12 pt-6">
+            <Reveal delay={0.24}>
+              <dl className="mt-9 grid max-w-lg grid-cols-3 gap-3 border-t border-maroon/12 pt-5">
                 {[
-                  ["12", "craft traditions"],
-                  ["12", "original motifs"],
-                  ["5", "garment formats"],
+                  ["1:1", "artisan per piece"],
+                  ["8%", "platform fee, shown upfront"],
+                  ["0", "AI-generated concepts"],
                 ].map(([value, label]) => (
                   <div key={label}>
                     <dt className="font-display text-2xl font-semibold text-maroon">{value}</dt>
-                    <dd className="mt-0.5 text-[11px] uppercase tracking-wide text-muted-foreground">{label}</dd>
+                    <dd className="mt-0.5 text-[10px] leading-snug tracking-wide text-muted-foreground uppercase">{label}</dd>
                   </div>
                 ))}
               </dl>
             </Reveal>
           </div>
 
-          {/* hero artwork */}
-          <Reveal delay={0.2} className="relative">
-            <div className="relative mx-auto max-w-[520px]">
-              <div className="absolute -inset-6 rounded-[2rem] border border-gold/30 bg-gradient-to-br from-peach/60 via-ivory to-mint/50" />
+          {/* hero interface preview: a brief, not generated artwork */}
+          <Reveal delay={0.16} className="relative">
+            <div className="relative mx-auto max-w-[540px]">
+              <div className="absolute -inset-5 rounded-[2rem] border border-gold/35 bg-gradient-to-br from-peach/60 via-ivory to-mint/50" />
               <CornerFlourish className="absolute -left-2 -top-2 z-20 size-14" />
               <CornerFlourish className="absolute -bottom-2 -right-2 z-20 size-14 rotate-180" />
-
-              <div className="relative overflow-hidden rounded-[1.6rem] border border-maroon/20 bg-[#fdf1dc]">
+              <div className="relative overflow-hidden rounded-[1.5rem] border border-maroon/20 bg-[#fdf2de] shadow-[0_30px_70px_-40px_rgba(70,17,38,0.5)]">
                 <div className="flex items-center justify-between border-b border-maroon/12 px-4 py-2.5">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-maroon/70">
-                    Design studio · preview
-                  </span>
-                  <span className="flex gap-1.5">
-                    <span className="size-2 rounded-full bg-vermilion/60" />
-                    <span className="size-2 rounded-full bg-saffron/70" />
-                    <span className="size-2 rounded-full bg-teal/60" />
-                  </span>
+                  <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-maroon/60">Customisation brief · illustrative preview</span>
+                  <span className="rounded-full bg-teal/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-teal">Draft</span>
                 </div>
-                <div className="relative bg-[radial-gradient(circle_at_50%_30%,#fff7e8_0%,#f1dfc3_100%)]">
-                  <GarmentArt canvas={heroCanvas} className="h-auto w-full" />
-                  <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-2">
-                    <div className="rounded-lg border border-maroon/15 bg-parchment/95 px-3 py-2 backdrop-blur">
-                      <p className="font-display text-sm font-semibold text-maroon">Marigold Madhubani Jacket</p>
-                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Concept · v1</p>
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-display text-xl font-semibold leading-tight text-maroon">Painting my grandfather’s denim jacket</p>
+                      <p className="mt-1 text-[11px] text-ink/55">Denim jacket · keep the original stitching · wear by December</p>
                     </div>
-                    <div className="flex gap-1.5 rounded-full border border-maroon/15 bg-parchment/95 p-1.5">
-                      {heroConcept.palette.slice(0, 4).map((hex) => (
-                        <span key={hex} className="size-5 rounded-full ring-1 ring-ink/10" style={{ background: hex }} />
+                    <span className="font-hindi text-xs text-teal">कपड़े पर कहानी</span>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-[1.15fr_0.85fr] gap-2.5">
+                    <div className="rounded-xl border border-maroon/15 bg-ivory/70 p-3">
+                      <p className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-maroon/60">
+                        <Camera className="size-3" /> Your reference
+                      </p>
+                      <div className="mt-2 flex aspect-[4/3] items-center justify-center rounded-lg border border-dashed border-gold/60 bg-[radial-gradient(circle_at_40%_30%,#fff8ec,#f0dcc0)]">
+                        <div className="text-center">
+                          <Camera className="mx-auto size-6 text-maroon/30" />
+                          <p className="mt-1 text-[10px] font-medium text-maroon/50">Upload your own photo</p>
+                          <p className="text-[9px] text-muted-foreground">Not a generated image</p>
+                        </div>
+                      </div>
+                      <div className="mt-2 flex gap-1.5">
+                        {["#3f4f6b", "#7b2040", "#f2a33a", "#087f83", "#e9e0cf"].map((hex) => (
+                          <span key={hex} className="h-4 flex-1 rounded-sm ring-1 ring-ink/10" style={{ background: hex }} />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="rounded-lg border border-teal/20 bg-teal/[0.05] p-2.5">
+                        <p className="text-[9px] font-semibold uppercase tracking-wide text-teal">KalaVision read</p>
+                        <p className="mt-1 text-[10px] leading-snug text-ink/65">Wearable denim, hand-painted, sentimental value. Prefers visible brushwork over a printed look.</p>
+                      </div>
+                      <div className="rounded-lg border border-gold/40 bg-card p-2.5">
+                        <p className="text-[9px] font-semibold uppercase tracking-wide text-maroon">Budget & timeline</p>
+                        <p className="mt-1 text-sm font-semibold text-maroon">₹6,000–9,000</p>
+                        <p className="text-[10px] text-muted-foreground">3–4 weeks · flexible by 5 days</p>
+                      </div>
+                      <div className="rounded-lg border border-emerald/25 bg-emerald/[0.05] p-2.5">
+                        <p className="text-[9px] font-semibold uppercase tracking-wide text-emerald">3 artisans matched</p>
+                        <p className="mt-1 text-[10px] leading-snug text-ink/60">Explainable fit — craft, material, capacity.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="mt-2 text-[8px] leading-relaxed text-muted-foreground">Illustrative interface — not a real order, artisan match or AI result.</p>
+                  <div className="mt-2 rounded-xl border border-maroon/12 bg-card p-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-maroon/60">Protection before making</p>
+                      <Lock className="size-3 text-teal" />
+                    </div>
+                    <div className="mt-2 flex items-center gap-1 text-[9px] text-ink/55">
+                      {["Brief", "Quote", "Concept approval", "Making", "Handover"].map((stage, index) => (
+                        <div key={stage} className="flex flex-1 items-center gap-1">
+                          <span className={`flex size-4 shrink-0 items-center justify-center rounded-full text-[8px] font-bold ${index === 0 ? "bg-maroon text-ivory" : "bg-maroon/10 text-maroon/50"}`}>{index + 1}</span>
+                          <span className="truncate">{stage}</span>
+                        </div>
                       ))}
                     </div>
                   </div>
                 </div>
               </div>
-
-              <motion.div
-                animate={{ y: [0, -7, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -left-4 top-1/3 z-10 hidden w-[168px] rounded-xl border border-teal/25 bg-ivory p-3 sm:block"
-              >
-                <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-teal">Measured palette</p>
-                <div className="mt-2 flex gap-1">
-                  {heroConcept.palette.map((hex) => (
-                    <span key={hex} className="h-7 flex-1 rounded-sm ring-1 ring-ink/10" style={{ background: hex }} />
-                  ))}
-                </div>
-                <p className="mt-2 text-[10px] leading-snug text-muted-foreground">Extracted from your reference on-device.</p>
-              </motion.div>
-
-              <div className="absolute -right-3 bottom-24 z-10 hidden w-[150px] rounded-xl border border-saffron/40 bg-ivory p-3 sm:block">
-                <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-maroon">Rule-based note</p>
-                <p className="mt-1 font-display text-sm leading-tight text-ink">Fish-pair motif · centre chest</p>
-                <p className="mt-1 text-[10px] text-muted-foreground">6–14 days hand-work estimate</p>
+              <div className="absolute -right-3 bottom-20 z-10 hidden w-[158px] rounded-xl border border-saffron/45 bg-ivory p-3 shadow-sm sm:block">
+                <p className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-maroon"><Sparkles className="size-3" /> CraftFit match</p>
+                <p className="mt-1 font-display text-sm leading-tight text-ink">Hand painting on denim</p>
+                <p className="mt-1 text-[10px] text-muted-foreground">Skills 30% · material 20% · capacity 15%</p>
               </div>
-
-              <Peacock className="absolute -bottom-14 -left-10 size-36 opacity-90 sm:size-44" />
+              <Peacock className="absolute -bottom-16 -left-12 size-36 opacity-90 sm:size-44" />
             </div>
           </Reveal>
         </div>
 
         <div className="border-y border-maroon/10 bg-maroon/[0.03] py-3">
-          <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 text-center md:px-8">
-            {CRAFTS.slice(0, 8).map((c, index) => (
-              <span key={c.id} className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.14em] text-maroon/60">
-                <span className="font-hindi text-[13px] text-teal normal-case">{c.hindi}</span>
-                {c.name}
-                {index < 7 && <span className="ml-4 hidden size-1 rounded-full bg-gold/60 sm:block" />}
+          <div className="mx-auto flex max-w-[1320px] flex-wrap items-center justify-center gap-x-5 gap-y-2 px-4 text-center md:px-8">
+            {CRAFT_SKILLS.slice(0, 10).map((skill, index) => (
+              <span key={skill} className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.13em] text-maroon/60">
+                {skill}
+                {index < 9 && <span className="ml-3 hidden size-1 rounded-full bg-gold/60 sm:block" />}
               </span>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ------------------------------------------------------------ journey */}
-      <section id="journey" className="relative mx-auto max-w-[1280px] px-4 py-16 md:px-8 md:py-24">
+      {/* two journeys */}
+      <section className="mx-auto max-w-[1320px] px-4 py-16 md:px-8 md:py-24">
         <Reveal className="flex flex-col items-center text-center">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal">The v1 journey</span>
-          <h2 className="mt-3 max-w-[22ch] font-display text-4xl font-semibold leading-tight text-maroon md:text-5xl">
-            Inspiration in. A real design out.
-          </h2>
-          <p className="mt-4 max-w-[58ch] text-sm leading-relaxed text-ink/65">
-            Three deliberate steps, all working today. No black-box magic, no invented
-            artisans, no fake AI receipts.
+          <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-teal">Two sides. One agreement.</span>
+          <h2 className="mt-3 max-w-[22ch] font-display text-4xl font-semibold leading-tight text-maroon md:text-5xl">A better deal for the person making it.</h2>
+          <p className="mt-4 max-w-[60ch] text-sm leading-relaxed text-ink/65">
+            Most customisation platforms begin with a customer and end with a transaction. KALकारी
+            begins with the craftsperson: paid quoted work, agreed concepts, and a record of their labour.
           </p>
           <Divider className="mt-6 h-8 w-64" />
         </Reveal>
 
-        <div className="mt-12 grid gap-5 md:grid-cols-3">
-          {steps.map((step, index) => (
-            <Reveal key={step.title} delay={index * 0.08}>
-              <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-maroon/15 bg-card p-6 transition-colors hover:border-maroon/35">
+        <div className="mt-12 grid gap-6 lg:grid-cols-2">
+          {[
+            { label: "If you have an idea", hindi: "ग्राहक", steps: CUSTOMER_STEPS, cta: { to: requestCta, label: "Start a customisation brief" }, tone: "maroon" },
+            { label: "If you have the craft", hindi: "कारीगर", steps: ARTISAN_STEPS, cta: { to: artisanCta, label: "See matched craft work" }, tone: "teal" },
+          ].map((column, columnIndex) => (
+            <Reveal key={column.label} delay={columnIndex * 0.08}>
+              <div className={`h-full rounded-2xl border p-6 md:p-7 ${column.tone === "maroon" ? "border-maroon/20 bg-card" : "border-teal/25 bg-teal/[0.04]"}`}>
                 <div className="flex items-center justify-between">
-                  <span className="flex size-11 items-center justify-center rounded-xl bg-maroon/8 text-maroon">
-                    <step.icon className="size-5" />
-                  </span>
-                  <span className="font-display text-4xl font-semibold text-maroon/12">0{index + 1}</span>
+                  <div>
+                    <p className="font-hindi text-xs text-teal">{column.hindi}</p>
+                    <h3 className="font-display text-2xl font-semibold text-ink">{column.label}</h3>
+                  </div>
+                  {column.tone === "maroon" ? <PenLine className="size-6 text-maroon/40" /> : <Hammer className="size-6 text-teal/50" />}
                 </div>
-                <h3 className="mt-5 font-display text-xl font-semibold text-ink">{step.title}</h3>
-                <p className="font-hindi text-xs text-teal">{step.hindi}</p>
-                <p className="mt-3 text-sm leading-relaxed text-ink/65">{step.body}</p>
-                <div className="mt-5 h-px w-full bg-gradient-to-r from-gold/50 to-transparent" />
-              </article>
+                <ol className="mt-5 space-y-4">
+                  {column.steps.map((step, index) => (
+                    <li key={step.title} className="flex gap-3">
+                      <span className={`flex size-9 shrink-0 items-center justify-center rounded-full border ${column.tone === "maroon" ? "border-maroon/20 bg-maroon/[0.06] text-maroon" : "border-teal/30 bg-teal/10 text-teal-deep"}`}>
+                        <step.icon className="size-4" />
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold text-ink"><span className="mr-1.5 text-[10px] text-muted-foreground">0{index + 1}</span>{step.title}</p>
+                        <p className="mt-0.5 text-[12px] leading-relaxed text-ink/60">{step.body}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+                <Link to={column.cta.to} className={`mt-6 inline-flex items-center gap-1.5 text-xs font-semibold ${column.tone === "maroon" ? "text-maroon" : "text-teal-deep"}`}>
+                  {column.cta.label} <ArrowRight className="size-3.5" />
+                </Link>
+              </div>
             </Reveal>
           ))}
         </div>
       </section>
 
-      {/* ------------------------------------------------------------- studio */}
-      <section id="studio" className="relative overflow-hidden bg-indigo/[0.04] py-16 md:py-24">
-        <div className="absolute inset-x-0 top-0"><VineBorder className="h-3 w-full" color="#343e87" /></div>
-        <div className="mx-auto grid max-w-[1280px] items-center gap-10 px-4 md:px-8 lg:grid-cols-2 lg:gap-16">
-          <Reveal>
-            <div className="relative rounded-[1.5rem] border border-indigo/20 bg-gradient-to-br from-ivory via-peach/40 to-mint/40 p-3">
-              <div className="overflow-hidden rounded-[1.1rem] border border-indigo/15 bg-[#fbf3e2]">
-                <div className="flex items-center justify-between border-b border-indigo/12 px-4 py-2">
-                  <span className="text-[10px] uppercase tracking-[0.16em] text-indigo/70">Motif mixer → canvas</span>
-                  <span className="rounded-full bg-teal/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-teal">
-                    Working studio
-                  </span>
-                </div>
-                <div className="grid grid-cols-[72px_1fr] gap-2 p-3">
-                  <div className="flex flex-col gap-2">
-                    {MOTIFS.slice(0, 4).map((motif, i) => (
-                      <span
-                        key={motif.id}
-                        className={`flex aspect-square items-center justify-center rounded-lg border ${
-                          i === 0 ? "border-maroon/35 bg-ivory" : "border-maroon/12 bg-ivory/60"
-                        }`}
-                        style={{ color: ["#d94b39", "#7b2040", "#087f83", "#343e87"][i] }}
-                      >
-                        <svg viewBox="-50 -50 100 100" className="size-9">
-                          <MotifGlyph id={motif.id} />
-                        </svg>
-                      </span>
-                    ))}
-                  </div>
-                  <div className="rounded-lg bg-[radial-gradient(circle_at_50%_30%,#fff8ec,#efdcc0)]">
-                    <GarmentArt canvas={demoCanvas} className="h-full w-full" />
-                  </div>
-                </div>
-                <div className="flex items-center justify-between gap-2 border-t border-indigo/12 px-3 py-2">
-                  <div className="flex gap-1.5">
-                    {demoCanvas.layers.map((layer) => (
-                      <span key={layer.id} className="rounded border border-indigo/15 bg-ivory px-1.5 py-0.5 text-[9px] text-indigo/70">
-                        {layer.motifId}
-                      </span>
-                    ))}
-                  </div>
-                  <span className="text-[9px] uppercase tracking-wide text-muted-foreground">v3 saved</span>
-                </div>
-              </div>
+      {/* categories */}
+      <section className="border-y border-gold/25 bg-[#fcf1de] py-14">
+        <div className="mx-auto max-w-[1320px] px-4 md:px-8">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-vermilion">Start somewhere</span>
+              <h2 className="mt-2 font-display text-3xl font-semibold text-maroon md:text-4xl">What would you like made yours?</h2>
             </div>
-          </Reveal>
-
-          <Reveal delay={0.1}>
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-indigo">The flagship screen</span>
-            <h2 className="mt-3 font-display text-4xl font-semibold leading-[1.08] text-indigo md:text-5xl">
-              A studio that behaves like a studio.
-            </h2>
-            <p className="mt-4 max-w-[52ch] text-sm leading-relaxed text-ink/70">
-              Drag, rotate, recolour, re-order. Save a version each time. Export the exact
-              artwork on screen — not a mock-up of one.
-            </p>
-            <ul className="mt-7 grid gap-3 sm:grid-cols-2">
-              {studioFeatures.map((feature) => (
-                <li key={feature.title} className="rounded-xl border border-indigo/15 bg-card/80 p-4">
-                  <feature.icon className="size-4 text-teal" />
-                  <p className="mt-2 text-sm font-semibold text-ink">{feature.title}</p>
-                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{feature.body}</p>
-                </li>
-              ))}
-            </ul>
-            <Link
-              to={isAuthenticated ? "/kalavision" : "/auth?returnTo=%2Fkalavision"}
-              className="group mt-7 inline-flex items-center gap-2 rounded-full bg-indigo px-5 py-3 text-sm font-semibold text-ivory transition-colors hover:bg-indigo/90"
-            >
-              Try it with your image
-              <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------- crafts */}
-      <section id="crafts" className="mx-auto max-w-[1280px] px-4 py-16 md:px-8 md:py-24">
-        <Reveal className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-          <div>
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-vermilion">Craft library</span>
-            <h2 className="mt-3 max-w-[20ch] font-display text-4xl font-semibold leading-tight text-maroon md:text-5xl">
-              Twelve traditions. One canvas.
-            </h2>
+            <p className="max-w-[36ch] text-[12px] leading-relaxed text-ink/55">A jacket that already fits. A bag with a story. A gift nobody else can buy. If it can be crafted, it can be briefed.</p>
           </div>
-          <p className="max-w-[38ch] text-sm leading-relaxed text-ink/65">
-            Reference notes on region, materials and technique. Traditions are shared
-            heritage — the studio records attribution rather than claiming ownership.
-          </p>
-        </Reveal>
-
-        <div className="mt-9 grid gap-5 lg:grid-cols-[1.25fr_1fr]">
-          <div className="relative overflow-hidden rounded-2xl border border-maroon/20 bg-maroon p-6 text-ivory md:p-8">
-            <Mandala className="pointer-events-none absolute -right-16 -top-16 size-72 opacity-25" />
-            <div className="relative">
-              <div className="flex items-center gap-2">
-                <span className="font-hindi text-lg text-saffron">{craft.hindi}</span>
-                <span className="text-[10px] uppercase tracking-[0.2em] text-ivory/60">{craft.region}</span>
-              </div>
-              <h3 className="mt-2 font-display text-4xl font-semibold md:text-5xl">{craft.name}</h3>
-              <p className="mt-4 max-w-[46ch] text-sm leading-relaxed text-ivory/80">{craft.blurb}</p>
-
-              <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-saffron">Materials</p>
-                  <ul className="mt-2 space-y-1 text-xs text-ivory/75">
-                    {craft.materials.slice(0, 3).map((material) => (
-                      <li key={material}>{material}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-saffron">Techniques</p>
-                  <ul className="mt-2 space-y-1 text-xs text-ivory/75">
-                    {craft.techniques.slice(0, 3).map((technique) => (
-                      <li key={technique}>{technique}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              <div className="mt-6 flex flex-wrap gap-2">
-                {craft.motifs.map((motifId) => (
-                  <span key={motifId} className="flex items-center gap-2 rounded-full border border-ivory/20 bg-ivory/5 px-2.5 py-1 text-[11px] text-ivory/85">
-                    <svg viewBox="-50 -50 100 100" className="size-4" style={{ color: "#f2a33a" }}>
-                      <MotifGlyph id={motifId} />
-                    </svg>
-                    {MOTIFS.find((m) => m.id === motifId)?.label ?? motifId}
-                  </span>
-                ))}
-              </div>
-
-              <div className="mt-7 flex gap-1.5">
-                {craft.palette.map((hex) => (
-                  <span key={hex} className="h-8 w-8 rounded-full ring-1 ring-ivory/30" style={{ background: hex }} />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2">
-            {CRAFTS.map((item, index) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setActiveCraft(index)}
-                aria-pressed={index === activeCraft}
-                className={`group relative overflow-hidden rounded-xl border p-3 text-left transition-all ${
-                  index === activeCraft
-                    ? "border-maroon/45 bg-card"
-                    : "border-maroon/15 bg-card/60 hover:border-maroon/35 hover:bg-card"
-                }`}
+          <div className="mt-7 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+            {REQUEST_CATEGORIES.map((category) => (
+              <Link
+                key={category}
+                to={`${requestCta}${requestCta.includes("?") ? "&" : "?"}category=${encodeURIComponent(category)}`}
+                className="group flex items-center justify-between rounded-xl border border-maroon/15 bg-card/70 px-4 py-3.5 transition hover:border-maroon/40 hover:bg-card"
               >
-                <div className="flex items-start justify-between">
-                  <svg viewBox="-50 -50 100 100" className="size-9 transition-transform duration-500 group-hover:scale-110" style={{ color: item.accent }}>
-                    <MotifGlyph id={item.motifs[0]} />
-                  </svg>
-                  <span className="font-hindi text-[10px] text-muted-foreground">{item.hindi}</span>
-                </div>
-                <p className="mt-3 text-sm font-semibold text-ink">{item.name}</p>
-                <p className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">{item.region}</p>
-              </button>
+                <span className="text-[13px] font-medium text-ink/75 group-hover:text-maroon">{category}</span>
+                <ArrowRight className="size-3.5 text-maroon/35 transition-transform group-hover:translate-x-0.5 group-hover:text-maroon" />
+              </Link>
             ))}
           </div>
         </div>
-
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={craft.id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="mt-4 text-center text-xs text-muted-foreground"
-          >
-            Showing reference notes for <span className="font-medium text-maroon">{craft.name}</span> ·{" "}
-            {craft.region}
-          </motion.p>
-        </AnimatePresence>
       </section>
 
-      {/* --------------------------------------------------------------- ethos */}
-      <section id="ethos" className="relative overflow-hidden border-y border-gold/25 bg-[#fdf3e3] py-16 md:py-24">
-        <div className="pointer-events-none absolute right-0 top-1/2 hidden -translate-y-1/2 opacity-90 lg:block">
-          <Peacock className="size-[420px]" />
-        </div>
-        <div className="mx-auto max-w-[1280px] px-4 md:px-8">
-          <div className="max-w-[600px]">
-            <Reveal>
-              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal">Our ethos</span>
-              <h2 className="mt-3 font-display text-4xl font-semibold leading-[1.1] text-maroon md:text-[3.2rem]">
-                Crafted by Many.
-                <br />
-                <span className="font-hindi-display text-vermilion">सिर्फ़ आपके लिए।</span>
-              </h2>
-            </Reveal>
-            <Reveal delay={0.08}>
-              <div className="mt-5 rounded-xl border border-gold/45 bg-card/60 px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-teal">
-                  The name
-                </p>
-                <p className="mt-1.5 font-display text-base leading-relaxed text-ink/75">
-                  <span lang="hi" className="font-hindi-display text-[1.2em] leading-none text-vermilion">
-                    कला
-                  </span>{" "}
-                  is art;{" "}
-                  <span lang="hi" className="font-hindi-display text-[1.2em] leading-none text-vermilion">
-                    कारी
-                  </span>{" "}
-                  is the making of it. Together they name what this studio exists for:{" "}
-                  <span className="font-semibold text-maroon">artistry</span>.
-                </p>
-              </div>
-              <p className="mt-5 text-sm leading-relaxed text-ink/70 md:text-base">
-                Every motif in this studio is drawn for KALAकारी. Where a pattern belongs to a
-                living tradition, we name the tradition, record the artisan contribution and
-                keep a permissions trail. AI proposes; people decide.
-              </p>
-              <div className="mt-7 grid gap-4 sm:grid-cols-3">
-                {[
-                  ["Attribution, always", "Craft and motif provenance travels with each design."],
-                  ["Suggestions, labelled", "Rule-based, AI-assisted and verified data look different."],
-                  ["Human sign-off", "Nothing is sent to production without an artisan."],
-                ].map(([title, body]) => (
-                  <div key={title} className="border-l-2 border-gold/60 pl-3">
-                    <p className="text-xs font-semibold text-maroon">{title}</p>
-                    <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{body}</p>
-                  </div>
-                ))}
-              </div>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* ----------------------------------------------------------- final CTA */}
-      <section className="mx-auto max-w-[1280px] px-4 py-16 md:px-8 md:py-24">
-        <Reveal>
-          <div className="relative overflow-hidden rounded-[2rem] border border-maroon/30 bg-[linear-gradient(120deg,#7b2040_0%,#651a34_55%,#343e87_100%)] px-6 py-12 text-center text-ivory md:px-12 md:py-16">
-            <Mandala className="pointer-events-none absolute -left-24 -top-24 size-80 opacity-20" />
-            <Mandala className="pointer-events-none absolute -bottom-28 -right-24 size-80 opacity-20" />
-            <div className="relative mx-auto max-w-[620px]">
-              <p className="font-hindi-display text-sm text-saffron">आपकी कल्पना, उनकी कारीगरी</p>
-              <h2 className="mt-3 font-display text-4xl font-semibold leading-tight md:text-5xl">
-                Bring one image. Leave with a creation.
-              </h2>
-              <p className="mx-auto mt-4 max-w-[48ch] text-sm leading-relaxed text-ivory/80">
-                Start with an inspiration and a product format. The studio handles the rest —
-                and tells you honestly what it does not know.
-              </p>
-              <Link
-                to={isAuthenticated ? "/kalavision" : "/auth?returnTo=%2Fkalavision"}
-                className="mt-7 inline-flex items-center gap-2 rounded-full bg-saffron px-6 py-3.5 text-sm font-semibold text-maroon-deep transition-colors hover:bg-marigold"
-              >
-                Start creating
-                <ArrowRight className="size-4" />
-              </Link>
-            </div>
-          </div>
-        </Reveal>
-      </section>
-
-      {/* -------------------------------------------------------------- footer */}
-      <footer className="border-t border-gold/30 bg-[#fdf3e3]">
-        <div className="mx-auto flex max-w-[1280px] flex-col gap-6 px-4 py-8 md:flex-row md:items-center md:justify-between md:px-8">
+      {/* artisans */}
+      <section className="mx-auto max-w-[1320px] px-4 py-16 md:px-8 md:py-24">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <Wordmark size="sm" />
-            <p className="mt-2 max-w-[38ch] text-[11px] leading-relaxed text-muted-foreground">
-              KALAकारी · Crafted by Many. Made for You. An AI-guided Indian craft studio, in
-              its first version.
+            <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-teal">The directory</span>
+            <h2 className="mt-2 font-display text-4xl font-semibold text-maroon md:text-5xl">Meet the hands behind the work.</h2>
+          </div>
+          <Link to="/explore-artisans" className="inline-flex items-center gap-1.5 text-xs font-semibold text-maroon hover:text-vermilion">
+            Explore all artisans <ArrowRight className="size-3.5" />
+          </Link>
+        </div>
+        {artisans === undefined ? (
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            {[0, 1, 2].map((key) => <div key={key} className="h-72 animate-pulse rounded-2xl border border-maroon/10 bg-card/60" />)}
+          </div>
+        ) : artisans.length === 0 ? (
+          <div className="mt-8 rounded-2xl border border-dashed border-maroon/25 bg-card/60 px-6 py-12 text-center">
+            <Users className="mx-auto size-8 text-maroon/30" />
+            <p className="mt-3 font-display text-xl text-maroon">The artisan directory is opening.</p>
+            <p className="mx-auto mt-2 max-w-[46ch] text-xs leading-relaxed text-ink/55">
+              Profiles appear here only when artisans create them. We won’t pad this page with invented
+              makers, reviews or earnings. Are you a craftsperson? Your CraftFit profile is the first step.
+            </p>
+            <Link to={artisanCta} className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-teal px-4 py-2 text-xs font-semibold text-ivory">Create a CraftFit profile <ArrowRight className="size-3.5" /></Link>
+          </div>
+        ) : (
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {artisans.map((artisan) => <ArtisanCard key={artisan.id} artisan={artisan} />)}
+          </div>
+        )}
+        <p className="mt-3 text-[10px] text-muted-foreground">
+          Some early profiles may be labelled sample data. Ratings and completed-project counts appear only from real, completed work.
+        </p>
+      </section>
+
+      {/* traditions */}
+      <section className="relative overflow-hidden bg-maroon py-16 text-ivory md:py-24">
+        <Mandala className="pointer-events-none absolute -right-32 -top-32 size-[520px] opacity-15" />
+        <div className="relative mx-auto max-w-[1320px] px-4 md:px-8">
+          <div className="max-w-[640px]">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-saffron">Craft, with attribution</span>
+            <h2 className="mt-3 font-display text-4xl font-semibold leading-tight md:text-5xl">Traditions are not a trend cycle.</h2>
+            <p className="mt-4 max-w-[56ch] text-sm leading-relaxed text-ivory/70">
+              Every craft has a region, a technique and people who carry it. KALकारी records that
+              context on the profile and the brief. AI can explain a craft; it cannot own one.
             </p>
           </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-ink/60">
-            <a href="#crafts" className="hover:text-maroon">Craft library</a>
-            <a href="#journey" className="hover:text-maroon">How it works</a>
-            <a href="#studio" className="hover:text-maroon">Design studio</a>
-            <Link to="/auth" className="hover:text-maroon">Sign in</Link>
+          <div className="mt-8 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+            {CRAFT_TRADITIONS.map((craft) => (
+              <Link key={craft.id} to={`/crafts?craft=${craft.id}`} className="group rounded-xl border border-ivory/15 bg-ivory/[0.04] p-4 transition hover:border-saffron/50 hover:bg-ivory/[0.08]">
+                <p className="text-[9px] uppercase tracking-[0.15em] text-saffron/80">{craft.region}</p>
+                <p className="mt-1 font-display text-lg font-semibold">{craft.name}</p>
+                <p className="mt-1 text-[11px] leading-snug text-ivory/60">{craft.note}</p>
+                <span className="mt-2 inline-flex items-center gap-1 text-[10px] text-ivory/40 group-hover:text-saffron">Reference notes <ArrowRight className="size-3" /></span>
+              </Link>
+            ))}
           </div>
         </div>
-      </footer>
-    </div>
+      </section>
+
+      {/* protection */}
+      <section className="mx-auto max-w-[1320px] px-4 py-16 md:px-8 md:py-24">
+        <Reveal className="flex flex-col items-center text-center">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-teal">KalaTrust</span>
+          <h2 className="mt-3 max-w-[24ch] font-display text-4xl font-semibold leading-tight text-maroon md:text-5xl">Trust is a process, not a badge.</h2>
+          <p className="mt-4 max-w-[58ch] text-sm leading-relaxed text-ink/65">
+            We can’t promise that handmade work is risk-free. We can make the agreement explicit,
+            hold the payment, and keep evidence both sides can rely on.
+          </p>
+        </Reveal>
+        <div className="mt-10 grid gap-4 sm:grid-cols-2">
+          {PROTECTIONS.map((item, index) => (
+            <Reveal key={item.title} delay={index * 0.05}>
+              <div className="flex h-full gap-4 rounded-2xl border border-maroon/15 bg-card p-5">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-maroon/[0.07] text-maroon"><item.icon className="size-5" /></span>
+                <div>
+                  <h3 className="text-sm font-semibold text-ink">{item.title}</h3>
+                  <p className="mt-1 text-[12px] leading-relaxed text-ink/60">{item.body}</p>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+        <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-gold/40 bg-ivory/70 px-4 py-3 text-[10px] text-maroon/70">
+          <span className="flex items-center gap-1.5"><BadgeCheck className="size-3.5" /> Documented verification</span>
+          <span className="flex items-center gap-1.5"><Lock className="size-3.5" /> State-machine payments</span>
+          <span className="flex items-center gap-1.5"><FileText className="size-3.5" /> Append-only KalaProof</span>
+          <span className="flex items-center gap-1.5"><Languages className="size-3.5" /> Hindi · English · Hinglish</span>
+          <Link to="/trust-and-safety" className="ml-auto font-semibold text-maroon hover:text-vermilion">How protection works →</Link>
+        </div>
+      </section>
+
+      {/* AI manifesto */}
+      <section className="border-y border-gold/25 bg-[#fdf3e3] py-16 md:py-24">
+        <div className="mx-auto grid max-w-[1320px] gap-10 px-4 md:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+          <Reveal>
+            <p className="font-hindi-display text-sm text-vermilion">AI जोड़ता है, कारीगर बनाते हैं</p>
+            <h2 className="mt-3 font-display text-4xl font-semibold leading-[1.06] text-maroon md:text-5xl">We use AI to get you to a person faster.</h2>
+            <p className="mt-4 max-w-[46ch] text-sm leading-relaxed text-ink/65">
+              Not to replace the person. KalaVision organises a brief. KalaSaathi helps you say what
+              you mean. CraftFit finds hands that can do the work. The work itself is human.
+            </p>
+            <Link to="/why-kalkaari" className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-maroon/30 bg-card px-5 py-2.5 text-xs font-semibold text-maroon transition hover:border-maroon/60">
+              Read what AI does and doesn’t do <ArrowRight className="size-3.5" />
+            </Link>
+          </Reveal>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-emerald/25 bg-emerald/[0.04] p-5">
+              <p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald"><CheckCircle2 className="size-4" /> AI is used for</p>
+              <ul className="mt-3 space-y-2 text-[12px] text-ink/70">
+                {["Understanding a written brief and flagging missing details", "Describing craft skills, materials and finish options", "Explainable matching between briefs and artisan capacity", "Hindi, English and Hinglish translation support", "Explaining a quote and production plan", "Fraud and quality support for human reviewers"].map((line) => (
+                  <li key={line} className="flex gap-2"><span className="mt-1.5 size-1 shrink-0 rounded-full bg-emerald" />{line}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-2xl border border-vermilion/25 bg-vermilion/[0.04] p-5">
+              <p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-vermilion"><ShieldCheck className="size-4" /> Never used for</p>
+              <ul className="mt-3 space-y-2 text-[12px] text-ink/70">
+                {["Generating finished artwork or craft concepts", "Training on portfolios without permission", "Presenting AI output as handmade", "Auto-accepting quotes or approving work", "Fabricating reviews, orders or earnings", "A final decision on a dispute"].map((line) => (
+                  <li key={line} className="flex gap-2"><span className="mt-1.5 size-1 shrink-0 rounded-full bg-vermilion" />{line}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="mx-auto max-w-[980px] px-4 py-16 md:px-8 md:py-24">
+        <Reveal className="text-center">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-teal">Straight answers</span>
+          <h2 className="mt-3 font-display text-4xl font-semibold text-maroon">The questions that matter.</h2>
+        </Reveal>
+        <div className="mt-8 divide-y divide-maroon/12 border-y border-maroon/12">
+          {FAQS.map(([question, answer]) => (
+            <details key={question} className="group py-4">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-ink marker:hidden">
+                {question}
+                <span className="text-lg font-normal text-maroon/50 transition group-open:rotate-45">+</span>
+              </summary>
+              <p className="mt-2 max-w-[76ch] text-[12px] leading-relaxed text-ink/60">{answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      {/* final CTA */}
+      <section className="mx-auto max-w-[1320px] px-4 pb-16 md:px-8 md:pb-24">
+        <div className="relative overflow-hidden rounded-[2rem] border border-maroon/30 bg-[linear-gradient(120deg,#7b2040_0%,#651a34_55%,#343e87_100%)] px-6 py-12 text-center text-ivory md:px-12 md:py-16">
+          <Mandala className="pointer-events-none absolute -left-24 -top-24 size-80 opacity-20" />
+          <Mandala className="pointer-events-none absolute -bottom-28 -right-24 size-80 opacity-20" />
+          <div className="relative mx-auto max-w-[620px]">
+            <p className="font-hindi-display text-sm text-saffron">आपकी कल्पना, उनकी कारीगरी</p>
+            <h2 className="mt-3 font-display text-4xl font-semibold leading-tight md:text-5xl">Start with an idea. End with something only you have.</h2>
+            <p className="mx-auto mt-4 max-w-[50ch] text-sm leading-relaxed text-ivory/75">
+              Post it as a brief. We’ll find the hands that fit — and keep the agreement honest from
+              first quote to final handover.
+            </p>
+            <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+              <Link to={requestCta} className="inline-flex items-center justify-center gap-2 rounded-full bg-saffron px-6 py-3.5 text-sm font-semibold text-maroon-deep transition hover:bg-marigold">
+                Customise Something <ArrowRight className="size-4" />
+              </Link>
+              <Link to={artisanCta} className="inline-flex items-center justify-center gap-2 rounded-full border border-ivory/30 px-6 py-3.5 text-sm font-semibold text-ivory transition hover:bg-ivory/10">
+                <Hand className="size-4" /> Find Craft Work
+              </Link>
+            </div>
+            <p className="mt-4 text-[10px] text-ivory/45">Platform fee shown before commitment · {formatInr(0)} to post a brief</p>
+          </div>
+        </div>
+      </section>
+    </PublicShell>
   );
 }

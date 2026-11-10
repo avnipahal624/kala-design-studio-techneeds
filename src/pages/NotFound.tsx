@@ -11,8 +11,8 @@ export default function NotFound() {
         This thread leads nowhere
       </h1>
       <p className="mt-3 max-w-sm text-sm leading-relaxed text-ink/60">
-        The page you asked for isn't part of the KALAकारी studio. Head back to your creations and
-        pick up where you left off.
+        The page you asked for isn't part of KALकारी. Head back to your workspace, or start with a
+        customisation brief and a real artisan.
       </p>
       <div className="mt-6 flex gap-2">
         <Link to="/">
@@ -20,7 +20,7 @@ export default function NotFound() {
             Home
           </Button>
         </Link>
-        <Link to="/dashboard">
+        <Link to="/customer/dashboard">
           <Button className="bg-maroon text-ivory hover:bg-maroon-deep">Go to dashboard</Button>
         </Link>
       </div>

@@ -138,6 +138,7 @@ export function PublicShell({
             <ul className="mt-2 space-y-1.5 text-[11px] text-ink/60">
               <li>No AI artwork generation</li>
               <li>Artisan-owned concepts</li>
+              <li><Link to="/kala-rights" className="hover:text-maroon">KalaRights & reuse</Link></li>
               <li>Append-only KalaProof</li>
               <li>Verification shown honestly</li>
               <li>Disputes reviewed by people</li>

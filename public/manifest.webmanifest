@@ -1,7 +1,7 @@
 {
-  "name": "KALAकारी — Crafted by Many. Made for You.",
-  "short_name": "KALAकारी",
-  "description": "An AI-guided Indian craft studio for personalised designs.",
+  "name": "KALकारी — AI Connects. Artisans Create.",
+  "short_name": "KALकारी",
+  "description": "An artisan-first customisation marketplace: brief, match, approve, pay and follow craft work.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#fff9ef",
