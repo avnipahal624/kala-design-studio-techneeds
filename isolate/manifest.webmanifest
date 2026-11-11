@@ -1,0 +1,17 @@
+{
+  "name": "KALकारी — AI Connects. Artisans Create.",
+  "short_name": "KALकारी",
+  "description": "An artisan-first customisation marketplace: brief, match, approve, pay and follow craft work.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff9ef",
+  "theme_color": "#7b2040",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
