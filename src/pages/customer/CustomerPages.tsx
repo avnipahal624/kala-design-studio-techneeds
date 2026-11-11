@@ -12,6 +12,7 @@ import {
   feeBreakdown, formatDate, formatDateTime, formatInr, statusLabel,
 } from "@/lib/marketplace";
 import { useAuth } from "@/hooks/use-auth";
+import { demoRequest } from "@/lib/demoScenario";
 import { useAction, useMutation, useQuery } from "convex/react";
 import {
   ArrowRight, Ban, BriefcaseBusiness, CalendarClock, CheckCircle2, ChevronLeft,
@@ -385,6 +386,27 @@ export function CreateRequest() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function loadSneakerExample() {
+    setForm((prev) => ({
+      ...prev,
+      title: demoRequest.title,
+      category: demoRequest.category,
+      productDescription: demoRequest.productDescription,
+      description: demoRequest.description,
+      craftPreference: demoRequest.craftPreference,
+      colours: demoRequest.colours,
+      placement: demoRequest.placement,
+      materialsKnown: demoRequest.materialsKnown,
+      budgetInr: demoRequest.budgetInr,
+      deadline: demoRequest.deadline,
+      city: demoRequest.city,
+      fulfilment: demoRequest.fulfilment,
+      customerSuppliesProduct: true,
+      ownershipConfirmed: false,
+    }));
+    toast.success("Sneaker example loaded. Add your own product photo to publish it.");
+  }
+
   const budgetFee = feeBreakdown(form.budgetInr);
   const insight = analysis?.insight ?? analysis?.fallback;
 
@@ -466,7 +488,7 @@ export function CreateRequest() {
         <div className="rounded-2xl border border-maroon/15 bg-card p-5 md:p-6">
           {step === 1 && (
             <div className="space-y-4">
-              <div><h2 className="font-display text-2xl font-semibold text-maroon">What are we customising?</h2><p className="mt-1 text-xs text-ink/55">The base product, a clear title and at least one photo. Photos are visible only to you and artisans you invite or who match.</p></div>
+              <div className="flex flex-wrap items-start justify-between gap-2"><div><h2 className="font-display text-2xl font-semibold text-maroon">What are we customising?</h2><p className="mt-1 text-xs text-ink/55">The base product, a clear title and at least one photo. Photos are visible only to you and artisans you invite or who match.</p></div><button type="button" onClick={loadSneakerExample} className="rounded-full border border-saffron/50 bg-saffron/[0.1] px-3 py-1.5 text-[10px] font-semibold text-[#7a4f10]">Load white-sneaker example</button></div>
               <label className="block"><span className="text-[11px] font-semibold text-ink/70">Brief title</span><input value={form.title} onChange={(e) => set("title", e.target.value)} maxLength={100} placeholder="e.g. Paint my grandfather’s denim jacket" className="mt-1 h-10 w-full rounded-lg border border-maroon/20 bg-parchment px-3 text-sm" /><span className="mt-0.5 block text-[10px] text-muted-foreground">At least 5 characters. This is what artisans see first.</span></label>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block"><span className="text-[11px] font-semibold text-ink/70">Category</span><select value={form.category} onChange={(e) => set("category", e.target.value)} className="mt-1 h-10 w-full rounded-lg border border-maroon/20 bg-parchment px-2.5 text-sm">{REQUEST_CATEGORIES.map((category) => <option key={category}>{category}</option>)}</select></label>

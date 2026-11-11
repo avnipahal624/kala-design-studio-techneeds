@@ -5,6 +5,8 @@
  * output always carries human-readable reasons. No protected characteristics
  * are used, and new artisans receive a small, bounded fair-discovery boost.
  */
+export const JOB_FEED_MIN_SCORE = 35;
+
 export const MATCH_WEIGHTS = {
   skills: 0.3,
   productMaterial: 0.2,

@@ -10,7 +10,7 @@ import {
 import { deriveCraftDna } from "./lib/craftDna";
 import { notifyUser, recordAudit } from "./lib/events";
 import { fileUrls, validateImageRefs } from "./lib/files";
-import { scoreArtisan, type MatchRequest } from "./lib/matching";
+import { JOB_FEED_MIN_SCORE, scoreArtisan, type MatchRequest } from "./lib/matching";
 import { REQUEST_CATEGORIES } from "./lib/taxonomy";
 
 const MAX_OPEN_REQUESTS = 12;
@@ -140,7 +140,7 @@ export const create = mutation({
       .query("customerRequests")
       .withIndex("by_customer_created", (q) => q.eq("customerId", user._id).gte("createdAt", dayAgo))
       .take(MAX_OPEN_REQUESTS + 1);
-    if (recent.length > MAX_OPEN_REQUESTS) {
+    if (recent.length >= MAX_OPEN_REQUESTS) {
       throw new Error("LIMIT: you have created many requests today. Try again tomorrow.");
     }
 
@@ -198,7 +198,7 @@ export const create = mutation({
         .query("artisanProfiles")
         .withIndex("by_user", (q) => q.eq("userId", artisanId))
         .unique();
-      if (!profile || profile.verificationStatus === "suspended") continue;
+      if (!profile || profile.sampleLabel || profile.verificationStatus === "suspended") continue;
       invited.add(artisanId);
       await ctx.db.insert("quoteRequests", {
         requestId: id,
@@ -386,7 +386,7 @@ export const jobFeed = query({
       const match = scoreArtisan(matchInputFromRequest(request), { ...profile, craftTags: tags });
       const invited = invitedIds.has(request._id);
       if (!match.eligible && !invited) continue;
-      const scoreThreshold = args.minScore ?? 35;
+      const scoreThreshold = args.minScore ?? JOB_FEED_MIN_SCORE;
       if (!invited && match.score < scoreThreshold) continue;
       if (args.includeSavedOnly && !savedIds.has(request._id)) continue;
       const customer = await ctx.db.get(request.customerId);
@@ -449,13 +449,21 @@ export const getJob = query({
       ctx.db.query("portfolioItems").withIndex("by_artisan", (q) => q.eq("artisanId", user._id)).take(24),
     ]);
     const isOwner = request.customerId === user._id;
-    if (request.status !== "open" && !isOwner && !invite && !existingQuote) {
-      throw new Error("NOT_FOUND: this job is closed.");
-    }
+    const activeInvite = Boolean(invite && invite.status !== "declined");
     const match = scoreArtisan(matchInputFromRequest(request), {
       ...profile,
       craftTags: portfolio.flatMap((item) => item.craftTags),
     });
+    // A logged-in artisan must not be able to read an arbitrary brief by guessing
+    // its id. Open jobs are visible only when the deterministic match clears the
+    // KalaJobs threshold, or when this customer invited them / they already quoted.
+    const visibleAsMatch = match.eligible && match.score >= JOB_FEED_MIN_SCORE;
+    if (!isOwner && !activeInvite && !existingQuote && !visibleAsMatch) {
+      throw new Error("NOT_FOUND: this job is not available in your KalaJobs.");
+    }
+    if (request.status !== "open" && !isOwner && !activeInvite && !existingQuote) {
+      throw new Error("NOT_FOUND: this job is closed.");
+    }
     return {
       request: {
         ...request,
@@ -489,7 +497,7 @@ export const inviteArtisans = mutation({
         .query("artisanProfiles")
         .withIndex("by_user", (q) => q.eq("userId", artisanId))
         .unique();
-      if (!profile || profile.verificationStatus === "suspended") continue;
+      if (!profile || profile.sampleLabel || profile.verificationStatus === "suspended") continue;
       const existing = await ctx.db
         .query("quoteRequests")
         .withIndex("by_request_artisan", (q) => q.eq("requestId", args.requestId).eq("artisanId", artisanId))

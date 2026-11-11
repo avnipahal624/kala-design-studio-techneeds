@@ -196,14 +196,22 @@ export function ArtisanOnboarding() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  const introReady = form.intro.trim().length >= 30;
+  const introReady = form.intro.trim().length >= 20;
   const canContinue = step === 1
     ? form.displayName.trim().length >= 2 && form.craftHeadline.trim().length >= 4 && form.city.trim().length >= 2 && form.serviceRegion.trim().length >= 2 && introReady
     : step === 2
-      ? introReady && form.skills.length > 0 && form.products.length > 0 && form.materials.length > 0
+      ? form.skills.length > 0 && form.products.length > 0 && form.materials.length > 0
       : true;
 
   async function submit() {
+    // Step 1 owns the intro rule, but a half-filled profile can still reach this
+    // button (for example an older tab). Send the artisan back to the field
+    // instead of failing silently at the server.
+    if (!introReady) {
+      setStep(1);
+      toast.error("Add at least 20 characters about your work on step 1, then save again.");
+      return;
+    }
     setBusy(true);
     try {
       await save({
@@ -259,7 +267,7 @@ export function ArtisanOnboarding() {
                 <label className="block"><span className="text-[11px] font-semibold text-ink/70">Years in craft</span><input type="number" min={0} max={60} value={form.yearsExperience} onChange={(e) => set("yearsExperience", Number(e.target.value))} className="mt-1 h-10 w-full rounded-lg border border-maroon/20 bg-parchment px-3 text-sm" /></label>
               </div>
               <ChipPicker options={LANGUAGES} value={form.languages} onChange={(next) => set("languages", next)} label="Languages you work in" />
-              <label className="block"><span className="text-[11px] font-semibold text-ink/70">About your work</span><textarea value={form.intro} onChange={(e) => set("intro", e.target.value)} rows={4} maxLength={1200} placeholder="What do you make, how did you learn, what materials do you prefer? At least a couple of sentences." className="mt-1 w-full rounded-lg border border-maroon/20 bg-parchment px-3 py-2 text-sm" /><span className="text-[10px] text-muted-foreground">{form.intro.trim().length}/30 characters minimum</span></label>
+              <label className="block"><span className="text-[11px] font-semibold text-ink/70">About your work</span><textarea value={form.intro} onChange={(e) => set("intro", e.target.value)} rows={4} maxLength={1200} placeholder="What do you make, how did you learn, what materials do you prefer? At least a couple of sentences." className="mt-1 w-full rounded-lg border border-maroon/20 bg-parchment px-3 py-2 text-sm" /><span className="text-[10px] text-muted-foreground">{form.intro.trim().length}/20 characters minimum</span></label>
             </div>
           )}
 
@@ -273,7 +281,7 @@ export function ArtisanOnboarding() {
               <Notice>Your portfolio is separate and comes next. KALकारी never uses it to train AI without your explicit permission.</Notice>
               {!introReady && (
                 <div className="flex flex-wrap items-center gap-2 rounded-lg border border-maroon/25 bg-maroon/[0.05] px-3 py-2 text-[11px] text-maroon">
-                  <span>Continue is paused because “About your work” on step 1 needs at least 30 characters.</span>
+                  <span>Before saving, “About your work” on step 1 needs at least 20 characters.</span>
                   <button type="button" className="font-semibold underline underline-offset-2" onClick={() => setStep(1)}>Go back to step 1</button>
                 </div>
               )}
@@ -379,7 +387,7 @@ export function ArtisanJobDetail() {
   const submitQuote = useMutation(api.quotes.submit);
   const declineInvite = useMutation(api.requests.declineInvitation);
   const [busy, setBusy] = useState(false);
-  const [form, setForm] = useState({ materialsInr: 1500, labourInr: 3500, preparationInr: 300, finishingInr: 500, packagingInr: 150, deliveryInr: 0, timelineDays: 14, revisionRounds: 1, depositPercent: 50, terms: "50% project deposit; balance on approval. One revision round included. Materials subject to inspection on receipt.", note: "", expiresInDays: 7 });
+  const [form, setForm] = useState({ materialsInr: 800, labourInr: 2000, preparationInr: 200, finishingInr: 300, packagingInr: 100, deliveryInr: 0, timelineDays: 14, revisionRounds: 1, depositPercent: 50, terms: "50% project deposit; balance on approval. One revision round included. Materials subject to inspection on receipt.", note: "", expiresInDays: 7 });
   const [analysisOpen, setAnalysisOpen] = useState(false);
 
   if (!requestId) return null;
@@ -475,7 +483,7 @@ export function ArtisanJobDetail() {
             </div>
             {total > request.budgetInr && <p className="mt-1 text-[10px] font-medium text-vermilion">This exceeds the customer’s ceiling of {formatInr(request.budgetInr)}. Reduce lines or explain a scope change in the note.</p>}
             <div className="mt-3 grid grid-cols-3 gap-2">
-              <label className="block"><span className="text-[9px] font-medium uppercase text-muted-foreground">Days</span><input type="number" min={100} max={365} value={form.timelineDays} onChange={(e) => setForm((p) => ({ ...p, timelineDays: Number(e.target.value) }))} className="mt-0.5 h-8 w-full rounded-md border border-maroon/20 bg-parchment px-2 text-xs" /></label>
+              <label className="block"><span className="text-[9px] font-medium uppercase text-muted-foreground">Days</span><input type="number" min={1} max={365} value={form.timelineDays} onChange={(e) => setForm((p) => ({ ...p, timelineDays: Number(e.target.value) }))} className="mt-0.5 h-8 w-full rounded-md border border-maroon/20 bg-parchment px-2 text-xs" /></label>
               <label className="block"><span className="text-[9px] font-medium uppercase text-muted-foreground">Revisions</span><input type="number" min={0} max={5} value={form.revisionRounds} onChange={(e) => setForm((p) => ({ ...p, revisionRounds: Number(e.target.value) }))} className="mt-0.5 h-8 w-full rounded-md border border-maroon/20 bg-parchment px-2 text-xs" /></label>
               <label className="block"><span className="text-[9px] font-medium uppercase text-muted-foreground">Valid days</span><input type="number" min={1} max={30} value={form.expiresInDays} onChange={(e) => setForm((p) => ({ ...p, expiresInDays: Number(e.target.value) }))} className="mt-0.5 h-8 w-full rounded-md border border-maroon/20 bg-parchment px-2 text-xs" /></label>
             </div>

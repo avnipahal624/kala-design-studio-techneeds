@@ -48,6 +48,12 @@ export function PublicShell({
             ))}
           </nav>
           <div className="flex items-center gap-2">
+            <Link
+              to="/demo"
+              className="hidden items-center gap-1.5 rounded-full border border-teal/30 bg-teal/[0.06] px-3 py-1.5 text-[11px] font-semibold text-teal-deep transition hover:border-teal/60 hover:bg-teal/10 sm:inline-flex"
+            >
+              <span className="size-1.5 rounded-full bg-vermilion" /> Judge demo
+            </Link>
             {isAuthenticated ? (
               <Link
                 to={workspace}
@@ -64,7 +70,7 @@ export function PublicShell({
                   to="/auth?returnTo=%2Fcustomer%2Fcreate-request"
                   className="inline-flex items-center gap-1.5 rounded-full bg-maroon px-4 py-2 text-xs font-semibold text-ivory transition hover:bg-maroon-deep"
                 >
-                  Customise Something <ArrowRight className="size-3.5" />
+                  Start Customising <ArrowRight className="size-3.5" />
                 </Link>
               </>
             )}
@@ -93,6 +99,9 @@ export function PublicShell({
                 {link.label}
               </Link>
             ))}
+            <Link to="/demo" onClick={() => setOpen(false)} className="mt-2 block rounded-lg border border-teal/25 bg-card px-3 py-2 text-sm font-semibold text-teal-deep">
+              30-second judge demo
+            </Link>
             <Link to="/for-artisans" onClick={() => setOpen(false)} className="mt-2 block rounded-lg bg-teal/10 px-3 py-2 text-sm font-semibold text-teal-deep">
               Find craft work
             </Link>
@@ -131,6 +140,7 @@ export function PublicShell({
               <li><Link to="/artisan/onboarding" className="hover:text-maroon">Build a CraftFit profile</Link></li>
               <li><Link to="/artisan/jobs" className="hover:text-maroon">KalaJobs</Link></li>
               <li><Link to="/why-kalkaari" className="hover:text-maroon">Fair discovery</Link></li>
+              <li><Link to="/demo" className="hover:text-maroon">30-second judge demo</Link></li>
             </ul>
           </div>
           <div>

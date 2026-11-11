@@ -6,6 +6,7 @@ import {
   requireMarketplaceUser,
 } from "./lib/access";
 import { addKalaProof, notifyUser, recordAudit } from "./lib/events";
+import { JOB_FEED_MIN_SCORE, scoreArtisan } from "./lib/matching";
 import { feeBreakdown } from "./lib/payments";
 
 function assertQuoteInput(args: {
@@ -102,6 +103,34 @@ export const submit = mutation({
     if (request.deadline && new Date(request.deadline).getTime() < Date.now()) {
       throw new Error("INVALID: the customer's deadline has passed.");
     }
+
+    const [portfolio, invite] = await Promise.all([
+      ctx.db.query("portfolioItems").withIndex("by_artisan", (q) => q.eq("artisanId", user._id)).take(24),
+      ctx.db
+        .query("quoteRequests")
+        .withIndex("by_request_artisan", (q) => q.eq("requestId", args.requestId).eq("artisanId", user._id))
+        .unique(),
+    ]);
+    const match = scoreArtisan(
+      {
+        category: request.category,
+        budgetInr: request.budgetInr,
+        requiredSkills: request.requiredSkills,
+        materialsKnown: request.materialsKnown,
+        city: request.city,
+        fulfilment: request.fulfilment,
+        deadline: request.deadline,
+        craftPreference: request.craftPreference,
+      },
+      { ...profile, craftTags: portfolio.flatMap((item) => item.craftTags) },
+    );
+    // Quoting is only possible from a real KalaJobs match or a direct customer
+    // invitation. This prevents quoting on a brief id discovered elsewhere.
+    const invitedToQuote = invite?.status === "sent" || invite?.status === "quoted";
+    if (!invitedToQuote && !(match.eligible && match.score >= JOB_FEED_MIN_SCORE)) {
+      throw new Error("FORBIDDEN: this brief is not in your KalaJobs. Open it from the matched feed or ask the customer to invite you.");
+    }
+
     assertQuoteInput(args);
 
     const totalInr = Math.round(
@@ -181,10 +210,6 @@ export const submit = mutation({
       createdAt: now,
     });
 
-    const invite = await ctx.db
-      .query("quoteRequests")
-      .withIndex("by_request_artisan", (q) => q.eq("requestId", args.requestId).eq("artisanId", user._id))
-      .unique();
     if (invite) {
       await ctx.db.patch(invite._id, { status: "quoted", updatedAt: now });
     }

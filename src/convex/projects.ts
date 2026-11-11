@@ -564,8 +564,8 @@ export const addShipping = mutation({
     const user = await requireMarketplaceUser(ctx);
     const { project, isArtisan } = await requireProjectAccess(ctx, args.projectId, user);
     if (!isArtisan) throw new Error("FORBIDDEN: only the artisan can add shipping details.");
-    if (project.status !== "delivered" && project.status !== "review_pending") {
-      throw new Error("INVALID: shipping can be recorded after final approval.");
+    if (project.status !== "delivered") {
+      throw new Error("INVALID: shipping can be recorded after the customer approves the final work.");
     }
     if (args.carrier.trim().length < 2 || args.trackingNumber.trim().length < 3) {
       throw new Error("INVALID: add the carrier and tracking number.");

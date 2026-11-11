@@ -30,7 +30,7 @@ function assertCraftFit(args: {
   if (args.displayName.trim().length < 2) throw new Error("INVALID: add your display name.");
   if (args.craftHeadline.trim().length < 4) throw new Error("INVALID: add a short craft headline.");
   if (args.city.trim().length < 2) throw new Error("INVALID: add your city.");
-  if (args.intro.trim().length < 30) throw new Error("INVALID: write at least a couple of sentences about your work.");
+  if (args.intro.trim().length < 20) throw new Error("INVALID: write at least a couple of sentences about your work.");
   if (args.skills.length === 0) throw new Error("INVALID: choose at least one craft skill.");
   if (args.products.length === 0) throw new Error("INVALID: choose at least one product capability.");
   if (args.materials.length === 0) throw new Error("INVALID: choose at least one material you work with.");

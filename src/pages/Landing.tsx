@@ -22,6 +22,7 @@ import {
   MessageSquare,
   PackageCheck,
   PenLine,
+  PlayCircle,
   ScanText,
   ShieldCheck,
   Sparkles,
@@ -116,15 +117,20 @@ export default function Landing() {
             <Reveal delay={0.18}>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link to={requestCta} className="group inline-flex items-center justify-center gap-2 rounded-full bg-maroon px-6 py-3.5 text-sm font-semibold text-ivory transition hover:bg-maroon-deep">
-                  Customise Something <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                  Start Customising <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
-                <Link to={artisanCta} className="inline-flex items-center justify-center gap-2 rounded-full border border-teal/35 bg-card px-6 py-3.5 text-sm font-semibold text-teal-deep transition hover:border-teal/70 hover:bg-mint/40">
-                  <Hand className="size-4" /> Find Craft Work
+                <Link to="/demo" className="inline-flex items-center justify-center gap-2 rounded-full border border-saffron/50 bg-saffron/[0.1] px-6 py-3.5 text-sm font-semibold text-[#7a4f10] transition hover:border-saffron hover:bg-saffron/20">
+                  <PlayCircle className="size-4" /> 30-second judge demo
                 </Link>
               </div>
-              <p className="mt-3 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <ShieldCheck className="size-3.5" /> No AI artwork. No hidden fees. Your idea stays yours.
-              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground">
+                <Link to={artisanCta} className="inline-flex items-center gap-1.5 font-semibold text-teal-deep hover:underline">
+                  <Hand className="size-3.5" /> Find Craft Work
+                </Link>
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="size-3.5" /> No AI artwork. No hidden fees. Your idea stays yours.
+                </span>
+              </div>
             </Reveal>
             <Reveal delay={0.24}>
               <dl className="mt-9 grid max-w-lg grid-cols-3 gap-3 border-t border-maroon/12 pt-5">
