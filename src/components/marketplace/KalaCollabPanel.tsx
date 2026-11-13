@@ -274,7 +274,7 @@ export function KalaCollabPanel({
               </p>
             )}
 
-            {task.status === "submitted" && (
+            {task.status === "submitted" && ["approved", "in_production"].includes(plan.status) && (
               <Button
                 size="sm"
                 className="mt-2 rounded-full bg-emerald px-4 text-[10px] text-ivory hover:bg-emerald/90"

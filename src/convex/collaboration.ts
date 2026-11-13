@@ -5,6 +5,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { requireMarketplaceUser } from "./lib/access";
 import { notifyUser, recordAudit } from "./lib/events";
 import { scoreArtisan, type MatchRequest } from "./lib/matching";
+import { acceptedTotalWithinBudget, nextPlanStatusAfterResponse } from "./lib/collaboration";
 
 const MAX_TASKS = 5;
 
@@ -634,7 +635,7 @@ export const respondTask = mutation({
       const alreadyAccepted = currentTasks
         .filter((row) => row.status === "accepted")
         .reduce((sum, row) => sum + (row.quotedAmountInr ?? 0), 0);
-      if (alreadyAccepted + amount > plan.combinedBudgetInr) {
+      if (!acceptedTotalWithinBudget(alreadyAccepted, amount, plan.combinedBudgetInr)) {
         throw new Error(
           `INVALID: accepting this amount would exceed the customer's ₹${plan.combinedBudgetInr.toLocaleString("en-IN")} plan budget.`,
         );
@@ -656,10 +657,9 @@ export const respondTask = mutation({
       .query("collaborationTasks")
       .withIndex("by_plan", (q) => q.eq("planId", plan._id))
       .take(MAX_TASKS);
-    const allAccepted = all.length > 0 && all.every((row) => row.status === "accepted");
-    const anyDeclined = all.some((row) => row.status === "declined");
+    const planStatus = nextPlanStatusAfterResponse(all);
     await ctx.db.patch(plan._id, {
-      status: allAccepted ? "ready" : anyDeclined ? "draft" : "awaiting_artisans",
+      status: planStatus,
       updatedAt: Date.now(),
     });
     await notifyUser(ctx, plan.customerId, {
@@ -668,7 +668,7 @@ export const respondTask = mutation({
       body: `${task.title} · ${args.accept ? `₹${Math.round(args.quotedAmountInr ?? 0).toLocaleString("en-IN")} proposed` : "The artisan declined."}`,
       href: `/customer/requests/${plan.requestId}`,
     });
-    return { planStatus: allAccepted ? "ready" : anyDeclined ? "draft" : "awaiting_artisans" };
+    return { planStatus };
   },
 });
 
@@ -766,6 +766,10 @@ export const submitTask = mutation({
     const user = await requireMarketplaceUser(ctx);
     const task = await ctx.db.get(args.taskId);
     if (!task || task.artisanId !== user._id) throw new Error("NOT_FOUND: task not found.");
+    const plan = await ctx.db.get(task.planId);
+    if (!plan || !["approved", "in_production"].includes(plan.status)) {
+      throw new Error("INVALID: this collaboration plan is no longer accepting contributions.");
+    }
     if (task.status !== "in_progress") throw new Error("INVALID: only an in-progress task can be submitted.");
     if (args.note.trim().length < 12) throw new Error("INVALID: describe what you completed.");
     await ctx.db.patch(task._id, {
@@ -774,15 +778,12 @@ export const submitTask = mutation({
       submittedAt: Date.now(),
       updatedAt: Date.now(),
     });
-    const plan = await ctx.db.get(task.planId);
-    if (plan) {
-      await notifyUser(ctx, plan.customerId, {
-        type: "collab.submitted",
-        title: "A KalaCollab contribution is ready",
-        body: `${task.title}: review the artisan's completion note.`,
-        href: `/customer/requests/${plan.requestId}`,
-      });
-    }
+    await notifyUser(ctx, plan.customerId, {
+      type: "collab.submitted",
+      title: "A KalaCollab contribution is ready",
+      body: `${task.title}: review the artisan's completion note.`,
+      href: `/customer/requests/${plan.requestId}`,
+    });
     return { submitted: true };
   },
 });
@@ -795,6 +796,9 @@ export const approveTask = mutation({
     if (!task) throw new Error("NOT_FOUND: task not found.");
     const plan = await ctx.db.get(task.planId);
     if (!plan || plan.customerId !== user._id) throw new Error("NOT_FOUND: plan not found.");
+    if (!["approved", "in_production"].includes(plan.status)) {
+      throw new Error("INVALID: this collaboration plan is no longer accepting approvals.");
+    }
     if (task.status !== "submitted") throw new Error("INVALID: this task is not ready for approval.");
     await ctx.db.patch(task._id, { status: "approved", approvedAt: Date.now(), updatedAt: Date.now() });
     const all = await ctx.db

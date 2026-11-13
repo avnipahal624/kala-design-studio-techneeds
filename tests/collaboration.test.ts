@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
+import type { Doc } from "../src/convex/_generated/dataModel";
 import { decomposeRequest } from "../src/convex/collaboration";
+import {
+  acceptedTotalWithinBudget,
+  allDependenciesApproved,
+  nextPlanStatusAfterResponse,
+} from "../src/convex/lib/collaboration";
 
 function request(skills: string[], title = "The Heirloom Jacket") {
   return {
@@ -15,7 +21,7 @@ function request(skills: string[], title = "The Heirloom Jacket") {
     fulfilment: "shipping",
     deadline: "2027-02-01",
     craftPreference: "Kantha",
-  } as any;
+  } as unknown as Doc<"customerRequests">;
 }
 
 describe("KalaCollab decomposition", () => {
@@ -50,5 +56,24 @@ describe("KalaCollab decomposition", () => {
     expect(tasks).toHaveLength(1);
     expect(tasks[0].title).toBe("Craft interpretation");
     expect(tasks[0].weight).toBe(1);
+  });
+});
+
+describe("KalaCollab transitions and guards", () => {
+  test("only becomes ready when every task is accepted", () => {
+    expect(nextPlanStatusAfterResponse([{ status: "accepted" }, { status: "accepted" }])).toBe("ready");
+    expect(nextPlanStatusAfterResponse([{ status: "accepted" }, { status: "invited" }])).toBe("awaiting_artisans");
+    expect(nextPlanStatusAfterResponse([{ status: "accepted" }, { status: "declined" }])).toBe("draft");
+  });
+
+  test("rejects an acceptance that pushes the plan over budget", () => {
+    expect(acceptedTotalWithinBudget(4_000, 1_000, 5_000)).toBe(true);
+    expect(acceptedTotalWithinBudget(4_000, 1_001, 5_000)).toBe(false);
+  });
+
+  test("requires every dependency to be approved", () => {
+    expect(allDependenciesApproved(["approved", "approved"])).toBe(true);
+    expect(allDependenciesApproved(["approved", "submitted"])).toBe(false);
+    expect(allDependenciesApproved([])).toBe(false);
   });
 });

@@ -124,6 +124,33 @@ describe("Craft feasibility", () => {
     expect(result.checks.some((check) => check.key === "deadline" && check.status === "risk")).toBe(true);
   });
 
+  test("returns likely feasible for a realistic brief with a clear reference and buffer", () => {
+    const deadline = new Date(Date.now() + 120 * 86_400_000).toISOString().slice(0, 10);
+    const result = assessCraftFeasibility({
+      canvas,
+      craftId: "madhubani",
+      budgetInr: 9000,
+      deadline,
+      materialsKnown: "Silk-cotton",
+      customerSuppliesProduct: true,
+      hasReference: true,
+    });
+    expect(result.verdict).toBe("likely_feasible");
+    expect(result.missingInfo).toHaveLength(0);
+  });
+
+  test("flags an incompatible craft/product combination for review", () => {
+    const result = assessCraftFeasibility({
+      canvas: { ...canvas, productType: "tote" },
+      craftId: "madhubani",
+      budgetInr: 9000,
+      materialsKnown: "Canvas",
+      hasReference: true,
+    });
+    expect(result.verdict).toBe("needs_artisan_review");
+    expect(result.checks.find((check) => check.key === "craft")?.status).toBe("review");
+  });
+
   test("requires artisan review when budget and material are unknown", () => {
     const result = assessCraftFeasibility({
       canvas,
