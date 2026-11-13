@@ -459,6 +459,7 @@ const schema = defineSchema(
       verdict: feasibilityVerdictValidator,
       note: v.string(),
       estimatedDays: v.optional(v.number()),
+      demoLabel: v.optional(v.string()),
       createdAt: v.number(),
       updatedAt: v.number(),
     })
@@ -738,6 +739,7 @@ const schema = defineSchema(
       projectId: v.optional(v.id("projects")),
       lastMessageAt: v.number(),
       lastMessagePreview: v.string(),
+      demoLabel: v.optional(v.string()),
       createdAt: v.number(),
     })
       .index("by_customer", ["customerId", "lastMessageAt"])
@@ -749,6 +751,7 @@ const schema = defineSchema(
       senderId: v.id("users"),
       body: v.string(),
       attachments: v.array(fileRefValidator),
+      demoLabel: v.optional(v.string()),
       createdAt: v.number(),
       readAt: v.optional(v.number()),
     })

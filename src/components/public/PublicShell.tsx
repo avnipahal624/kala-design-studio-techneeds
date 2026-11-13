@@ -8,6 +8,7 @@ import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router";
 
 const LINKS = [
+  { to: "/studio", label: "Studio" },
   { to: "/how-it-works", label: "How it works" },
   { to: "/explore-artisans", label: "Explore artisans" },
   { to: "/crafts", label: "Crafts" },
@@ -130,6 +131,7 @@ export function PublicShell({
               <li><Link to="/how-it-works" className="hover:text-maroon">How customisation works</Link></li>
               <li><Link to="/explore-artisans" className="hover:text-maroon">Explore artisans</Link></li>
               <li><Link to="/kalacollab" className="hover:text-maroon">KalaCollab</Link></li>
+              <li><Link to="/studio" className="hover:text-maroon">Open the design studio</Link></li>
               <li><Link to="/customer/create-request" className="hover:text-maroon">Start a brief</Link></li>
               <li><Link to="/trust-and-safety" className="hover:text-maroon">Payment protection</Link></li>
             </ul>

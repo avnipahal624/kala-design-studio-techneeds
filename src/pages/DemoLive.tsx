@@ -2,20 +2,39 @@ import { PublicShell } from "@/components/public/PublicShell";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import { formatInr } from "@/lib/marketplace";
+import type { CanvasState } from "@/lib/design-types";
 import { useQuery } from "convex/react";
 import {
   ArrowRight,
   BadgeCheck,
   CheckCircle2,
   Clock3,
+  ClipboardCheck,
   GitBranch,
   IndianRupee,
   MapPin,
   Sparkles,
   Star,
+  TrendingUp,
   Users,
+  Wallet,
+  type LucideIcon,
 } from "lucide-react";
+import { lazy, Suspense } from "react";
 import { Link } from "react-router";
+
+const Garment3DPreview = lazy(() => import("@/components/studio/Garment3DPreview"));
+
+const DEMO_CANVAS: CanvasState = {
+  productType: "jacket",
+  silhouette: "Open-front jacket",
+  fabricColor: "#7a302a",
+  patternId: "none",
+  layers: [
+    { id: "demo-lotus", kind: "motif", motifId: "lotus", x: 450, y: 390, size: 360, rotation: 0, color: "#d8a65b", opacity: 1 },
+    { id: "demo-border", kind: "motif", motifId: "border", x: 450, y: 705, size: 260, rotation: 0, color: "#f7f2e8", opacity: 0.9 },
+  ],
+};
 
 const STATUS_LABELS: Record<string, string> = {
   approved: "Approved",
@@ -73,10 +92,10 @@ export default function DemoLive() {
 
             <div className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
-                [data?.counts.artisanUser ?? 22, "artisan profiles"],
-                [data?.counts.portfolio ?? 52, "portfolio pieces"],
-                [data?.counts.projects ?? 15, "projects"],
-                [data?.counts.reviews ?? 20, "reviews"],
+                [data?.counts.artisanUser ?? "—", "artisan profiles"],
+                [data?.counts.portfolio ?? "—", "portfolio pieces"],
+                [data?.counts.projects ?? "—", "projects"],
+                [data?.counts.reviews ?? "—", "reviews"],
               ].map(([value, label]) => (
                 <div key={label} className="rounded-2xl border border-maroon/12 bg-card/70 p-4">
                   <p className="font-display text-3xl font-semibold text-maroon">{value}</p>
@@ -152,6 +171,102 @@ export default function DemoLive() {
             )}
           </section>
 
+          {data?.makerWorkspace && (
+            <section id="maker-workspace" className="overflow-hidden rounded-3xl border border-maroon/15 bg-card scroll-mt-24">
+              <div className="flex flex-wrap items-end justify-between gap-4 border-b border-maroon/10 bg-[#fbf5e9] px-5 py-5 sm:px-7">
+                <div className="flex items-center gap-3">
+                  <span className="grid size-12 place-items-center rounded-full bg-maroon font-display text-xl text-ivory">{data.makerWorkspace.name.charAt(0)}</span>
+                  <div>
+                    <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-gold">Artisan workspace preview · read-only sample</p>
+                    <h2 className="mt-0.5 font-display text-2xl font-semibold text-maroon">{data.makerWorkspace.name}</h2>
+                    <p className="text-[11px] text-ink/50">{data.makerWorkspace.headline} · {data.makerWorkspace.city}</p>
+                  </div>
+                </div>
+                <Link to="/auth?returnTo=%2Fartisan%2Fdashboard" className="inline-flex items-center gap-2 rounded-full border border-maroon/20 bg-card px-4 py-2 text-[10px] font-semibold text-maroon hover:bg-parchment">
+                  Sign in for the live workspace <ArrowRight className="size-3.5" />
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 gap-3 p-5 sm:grid-cols-4 sm:p-7">
+                {([
+                  [formatInr(data.makerWorkspace.confirmedEarningsInr), "confirmed earnings", Wallet],
+                  [String(data.makerWorkspace.activeProjects), "active projects", Clock3],
+                  [String(data.makerWorkspace.completedProjects), "completed", CheckCircle2],
+                  [data.makerWorkspace.averageRating ? `${data.makerWorkspace.averageRating} ★` : "New", `${data.makerWorkspace.reviewCount} sample reviews`, Star],
+                ] as [string, string, LucideIcon][]).map(([value, label, Icon]) => (
+                  <div key={String(label)} className="rounded-xl border border-maroon/10 bg-parchment/50 p-3">
+                    <Icon className="size-3.5 text-gold" />
+                    <p className="mt-2 font-display text-xl font-semibold text-maroon">{value}</p>
+                    <p className="text-[9px] uppercase tracking-wide text-ink/45">{label}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="grid gap-4 border-t border-maroon/10 p-5 sm:p-7 lg:grid-cols-2">
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-maroon/60"><TrendingUp className="size-3.5 text-gold" /> Recommended opportunities</p>
+                    <span className="text-[9px] text-ink/40">Live CraftFit scores</span>
+                  </div>
+                  <div className="mt-3 space-y-2">
+                    {data.makerWorkspace.matches.length === 0 ? (
+                      <p className="rounded-xl border border-dashed border-maroon/20 p-4 text-xs text-ink/50">No eligible open briefs for this profile today. The live workspace shows a useful empty state instead of invented work.</p>
+                    ) : data.makerWorkspace.matches.map((match) => (
+                      <div key={match.id} className="rounded-xl border border-maroon/12 bg-parchment/40 p-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-xs font-semibold text-maroon">{match.title}</p>
+                            <p className="mt-0.5 text-[10px] text-ink/50">{formatInr(match.budgetInr)} · {match.city} · due {match.deadline ?? "open"}</p>
+                          </div>
+                          <span className="shrink-0 rounded-full bg-emerald/10 px-2.5 py-1 text-[10px] font-bold text-emerald">{match.matchScore}% match</span>
+                        </div>
+                        <p className="mt-1.5 line-clamp-2 text-[10px] leading-relaxed text-ink/55">{match.reason}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-maroon/60"><ClipboardCheck className="size-3.5 text-gold" /> Work already in the workspace</p>
+                  <div className="mt-3 rounded-xl border border-maroon/12 bg-parchment/40 p-4">
+                    <p className="text-xs leading-relaxed text-ink/60">This preview is calculated from the seeded projects, quotations, payouts and reviews for <strong>{data.makerWorkspace.name}</strong>. It is not another user's private account, and it cannot perform approvals or payments.</p>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] text-ink/55">
+                      <span className="rounded-lg bg-card px-2.5 py-2">{data.makerWorkspace.pendingQuotes} pending quotations</span>
+                      <span className="rounded-lg bg-card px-2.5 py-2">{data.makerWorkspace.invitations} collaboration invitations</span>
+                      <span className="rounded-lg bg-card px-2.5 py-2">{data.makerWorkspace.portfolioCount} portfolio pieces</span>
+                      <span className="rounded-lg bg-card px-2.5 py-2">{formatInr(data.makerWorkspace.pendingEarningsInr)} pending payout</span>
+                    </div>
+                    <p className="mt-3 text-[9px] leading-relaxed text-muted-foreground">{data.makerWorkspace.sampleLabel} Confirmed earnings are platform-recorded sandbox amounts, not live transfers.</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          <section className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gold">The studio · live WebGL preview</p>
+              <h2 className="mt-1 max-w-[14ch] font-display text-3xl font-semibold leading-tight text-maroon">Turn the product. The motif stays on the cloth.</h2>
+              <p className="mt-3 max-w-[52ch] text-sm leading-relaxed text-ink/55">
+                This is a real interactive 3D preview of the sample jacket, with fabric colour and
+                surface-attached motifs. Drag to orbit, scroll to zoom and switch to the back view.
+                Open the Studio to edit placement, change the base product and save a version.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <Button asChild className="rounded-full bg-maroon px-5 text-ivory hover:bg-maroon-deep">
+                  <Link to="/studio">Open the Design Studio <ArrowRight className="size-4" /></Link>
+                </Button>
+                <span className="inline-flex items-center rounded-full border border-maroon/15 bg-card px-3 py-2 text-[10px] font-medium text-ink/50">
+                  Sign-in is required to save a private design
+                </span>
+              </div>
+              <p className="mt-4 text-[9px] leading-relaxed text-muted-foreground">
+                Studio availability: jacket, T-shirt and tote use procedural original meshes. Other
+                products use the working 2D placement editor rather than a misleading 3D button.
+              </p>
+            </div>
+            <Suspense fallback={<div className="grid min-h-[420px] place-items-center rounded-xl border border-maroon/20 bg-[#fbf6eb] text-xs text-maroon/55">Preparing 3D preview…</div>}>
+              <Garment3DPreview canvas={DEMO_CANVAS} />
+            </Suspense>
+          </section>
+
           <section className="rounded-3xl border border-maroon/15 bg-[#fbf5e9] p-5 sm:p-7">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
@@ -173,11 +288,11 @@ export default function DemoLive() {
                 <article key={plan.id} className="rounded-2xl border border-maroon/12 bg-card p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-gold">{plan.label.replaceAll("_", " ")}</p>
+                      <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-gold">{plan.label.replace(/_/g, " ")}</p>
                       <h3 className="mt-1 font-display text-xl font-semibold leading-tight text-maroon">{plan.title}</h3>
                     </div>
                     <Chip tone={plan.status === "completed" ? "green" : plan.status === "ready" ? "gold" : "neutral"}>
-                      {plan.status.replaceAll("_", " ")}
+                      {plan.status.replace(/_/g, " ")}
                     </Chip>
                   </div>
                   <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-ink/55">

@@ -112,8 +112,21 @@ function ScreenOne({ next }: { next: () => void }) {
             Use the real flow
           </Link>
         </div>
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {[
+            ["/explore-artisans", "Explore artisans"],
+            ["/studio", "Try the 3D Studio"],
+            ["/kalacollab", "KalaCollab"],
+            ["/demo/live#maker-workspace", "Artisan workspace"],
+            ["/passport/demo-passport-1", "Sample passport"],
+          ].map(([to, label]) => (
+            <Link key={to} to={to} className="rounded-full border border-maroon/15 bg-card px-3 py-1.5 text-[10px] font-semibold text-maroon/70 transition hover:border-maroon/40 hover:text-maroon">
+              {label}
+            </Link>
+          ))}
+        </div>
         <p className="mt-3 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <ShieldCheck className="size-3.5" /> No sign-in needed for this demo · no live AI call · no payment gateway
+          <ShieldCheck className="size-3.5" /> Walkthrough needs no sign-in · 3D saving and role actions use the real auth flow
         </p>
         <dl className="mt-8 grid max-w-lg grid-cols-3 gap-3 border-t border-maroon/12 pt-5">
           {[

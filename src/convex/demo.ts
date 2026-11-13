@@ -1,8 +1,8 @@
-import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { internalMutation, mutation, query } from "./_generated/server";
 import { requireAdmin } from "./lib/access";
+import { scoreArtisan } from "./lib/matching";
 import { publicArtisan } from "./lib/serialise";
 import {
   DEMO_ARTISANS,
@@ -541,6 +541,7 @@ export async function seedDemo(ctx: MutationCtx) {
       projectId,
       lastMessageAt: now - (9 - i) * 3_600_000,
       lastMessagePreview: "The final photographs are in the project record. Thank you for the thoughtful brief.",
+      demoLabel: DEMO_LABEL,
       createdAt: now - (18 - i) * DAY,
     });
     await record(ctx, "conversation", conversationId, brief.title);
@@ -557,6 +558,7 @@ export async function seedDemo(ctx: MutationCtx) {
         senderId,
         body: messageBodies[m],
         attachments: [],
+        demoLabel: DEMO_LABEL,
         createdAt: now - (18 - i) * DAY + m * 3_600_000,
         readAt: m < 3 ? now - (9 - i) * 3_600_000 : undefined,
       });
@@ -577,6 +579,7 @@ export async function seedDemo(ctx: MutationCtx) {
         ? "The finish is achievable, but I would test the sealing method on a hidden panel first. A small swatch review will protect the final surface."
         : "A considered plan. The materials and timeline are workable with a clear swatch approval and one revision round.",
       estimatedDays: 12 + i * 2,
+      demoLabel: DEMO_LABEL,
       createdAt: now - (2 + i) * DAY,
       updatedAt: now - (2 + i) * DAY,
     });
@@ -921,6 +924,89 @@ export const showcase = query({
       });
     }
 
+    const makerRow = rows.find((entry) => entry.entityType === "artisanProfile");
+    let makerWorkspace = null;
+    if (makerRow) {
+      const profile = await ctx.db.get(makerRow.entityId as Id<"artisanProfiles">);
+      if (profile) {
+        const [projects, quotes, payoutRows, reviewRows, taskRows, openRequests, portfolio] = await Promise.all([
+          ctx.db.query("projects").withIndex("by_artisan", (q) => q.eq("artisanId", profile.userId)).collect(),
+          ctx.db.query("quotes").withIndex("by_artisan", (q) => q.eq("artisanId", profile.userId)).collect(),
+          ctx.db.query("payouts").withIndex("by_artisan", (q) => q.eq("artisanId", profile.userId)).collect(),
+          ctx.db.query("reviews").withIndex("by_subject", (q) => q.eq("subjectId", profile.userId)).collect(),
+          ctx.db.query("collaborationTasks").withIndex("by_artisan", (q) => q.eq("artisanId", profile.userId)).collect(),
+          ctx.db.query("customerRequests").withIndex("by_status", (q) => q.eq("status", "open")).take(10),
+          ctx.db.query("portfolioItems").withIndex("by_artisan", (q) => q.eq("artisanId", profile.userId)).take(24),
+        ]);
+        const paid = payoutRows.filter((payout) => payout.status === "paid").reduce((total, payout) => total + payout.amountInr, 0);
+        const pending = payoutRows.filter((payout) => payout.status !== "paid").reduce((total, payout) => total + payout.amountInr, 0);
+        const completed = projects.filter((project) => project.status === "completed").length;
+        const active = projects.filter((project) => ["funded", "in_production", "review_pending", "delivered"].includes(project.status)).length;
+        const matches = openRequests
+          .map((request) => {
+            const result = scoreArtisan(
+              {
+                category: request.category,
+                budgetInr: request.budgetInr,
+                requiredSkills: request.requiredSkills,
+                materialsKnown: request.materialsKnown,
+                city: request.city,
+                fulfilment: request.fulfilment,
+                deadline: request.deadline,
+                craftPreference: request.craftPreference,
+              },
+              {
+                skills: profile.skills,
+                customSkills: profile.customSkills,
+                products: profile.products,
+                materials: profile.materials,
+                availability: profile.availability,
+                minProjectValue: profile.minProjectValue,
+                maxProjectValue: profile.maxProjectValue,
+                turnaroundDays: profile.turnaroundDays,
+                city: profile.city,
+                shipsNationwide: profile.shipsNationwide,
+                completedProjects: profile.completedProjects,
+                craftHeadline: profile.craftHeadline,
+                craftTags: profile.skills,
+              },
+            );
+            return {
+              id: request._id,
+              title: request.title,
+              budgetInr: request.budgetInr,
+              deadline: request.deadline,
+              city: request.city,
+              skills: request.requiredSkills,
+              matchScore: result.score,
+              eligible: result.eligible,
+              reason: result.reasons[0] ?? "A partial match for this brief.",
+            };
+          })
+          .filter((match) => match.eligible)
+          .sort((a, b) => b.matchScore - a.matchScore)
+          .slice(0, 3);
+        makerWorkspace = {
+          id: profile.userId,
+          name: profile.displayName,
+          headline: profile.craftHeadline,
+          city: profile.city,
+          availability: profile.availability,
+          completedProjects: completed,
+          activeProjects: active,
+          confirmedEarningsInr: paid,
+          pendingEarningsInr: pending,
+          pendingQuotes: quotes.filter((quote) => quote.status === "submitted").length,
+          invitations: taskRows.filter((task) => ["invited", "accepted", "in_progress"].includes(task.status)).length,
+          averageRating: reviewRows.length > 0 ? Math.round((reviewRows.reduce((sum, review) => sum + review.rating, 0) / reviewRows.length) * 10) / 10 : null,
+          reviewCount: reviewRows.length,
+          portfolioCount: portfolio.length,
+          matches,
+          sampleLabel: DEMO_LABEL,
+        };
+      }
+    }
+
     return {
       seedKey: DEMO_SEED_KEY,
       demoLabel: DEMO_LABEL,
@@ -928,6 +1014,7 @@ export const showcase = query({
       artisans: artisans.filter((artisan) => artisan !== null),
       plans,
       passports,
+      makerWorkspace,
     };
   },
 });

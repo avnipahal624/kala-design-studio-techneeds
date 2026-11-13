@@ -16,7 +16,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { CRAFT_BY_ID, PRODUCT_BY_ID, PRODUCT_TYPES } from "@/lib/crafts";
 import { emptyCanvas } from "@/lib/craft-engine";
 import { useMutation, useQuery } from "convex/react";
-import { Copy, Loader2, Palette, Plus, Trash2 } from "lucide-react";
+import { ArrowRight, Box, Copy, Loader2, Palette, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -60,9 +60,9 @@ export default function Creations() {
 
   return (
     <AppShell
-      title="My Creations"
-      hindi="मेरी रचनाएँ"
-      subtitle="Every canvas, with its full version history intact"
+      title="Design Studio"
+      hindi="डिज़ाइन स्टूडियो"
+      subtitle="Shape a product in 3D, place motifs on its surface, and save every version"
       actions={
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -85,6 +85,43 @@ export default function Creations() {
         </DropdownMenu>
       }
     >
+      <section className="mb-6 overflow-hidden rounded-2xl border border-maroon/15 bg-[#fbf5e9]">
+        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-maroon/10 px-5 py-4">
+          <div>
+            <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-gold"><Box className="size-3.5" /> Interactive 3D product studio</p>
+            <h2 className="mt-1 font-display text-2xl font-semibold text-maroon">Choose a product to begin</h2>
+            <p className="mt-1 text-xs leading-relaxed text-ink/55">Jacket, T-shirt and tote have surface-attached motif previews in WebGL. Other products keep the full 2D placement editor.</p>
+          </div>
+          <span className="rounded-full border border-emerald/25 bg-emerald/[0.08] px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-emerald">3 products · 3D ready</span>
+        </div>
+        <div className="grid gap-3 p-4 sm:grid-cols-3">
+          {["jacket", "tshirt", "tote"].map((productId) => {
+            const product = PRODUCT_BY_ID[productId];
+            if (!product) return null;
+            return (
+              <button
+                key={productId}
+                type="button"
+                disabled={creating}
+                onClick={() => void createBlank(productId)}
+                className="group overflow-hidden rounded-xl border border-maroon/12 bg-card text-left transition hover:-translate-y-0.5 hover:border-maroon/35 hover:shadow-[0_16px_35px_-28px_rgba(70,17,38,0.55)] disabled:opacity-60"
+              >
+                <div className="bg-[radial-gradient(circle_at_50%_30%,#fff8ec,#eed9bc)] p-2">
+                  <GarmentArt canvas={emptyCanvas(productId as never)} className="mx-auto h-32 w-auto" />
+                </div>
+                <div className="flex items-center justify-between gap-2 border-t border-maroon/10 px-3 py-2.5">
+                  <div>
+                    <p className="text-xs font-semibold text-maroon">{product.label}</p>
+                    <p className="mt-0.5 text-[9px] text-ink/45">{product.hint}</p>
+                  </div>
+                  <ArrowRight className="size-3.5 shrink-0 text-maroon/50 transition group-hover:translate-x-0.5" />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       {designs === undefined ? (
         <div className="flex min-h-[320px] items-center justify-center">
           <Loader2 className="size-5 animate-spin text-muted-foreground" />

@@ -8,7 +8,7 @@
  * ownership of traditional motifs.
  */
 
-export type ProductTypeId = "jacket" | "kurta" | "tote" | "cushion" | "stole";
+export type ProductTypeId = "jacket" | "tshirt" | "kurta" | "tote" | "cushion" | "stole";
 
 export type ProductType = {
   id: ProductTypeId;
@@ -29,6 +29,15 @@ export const PRODUCT_TYPES: ProductType[] = [
     hint: "Structured shoulders, open placket, wide lapel",
     baseFabric: "#7b2040",
     motifScale: 1,
+  },
+  {
+    id: "tshirt",
+    label: "Embroidered T-shirt",
+    hindi: "टी-शर्ट",
+    silhouette: "Relaxed crew-neck tee",
+    hint: "Soft shoulder, short sleeve, clean front panel",
+    baseFabric: "#ece2d0",
+    motifScale: 0.9,
   },
   {
     id: "kurta",

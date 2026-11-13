@@ -166,7 +166,8 @@ createRoot(document.getElementById("root")!).render(
 
               <Route path="/dashboard" element={<Navigate to="/customer/dashboard" replace />} />
               <Route path="/kalavision" element={<Protected title="Sign in to use the legacy studio" description="The original inspiration canvas is kept as an archive."><KalaVision /></Protected>} />
-              <Route path="/creations" element={<Protected title="Sign in to view legacy creations" description="Legacy studio canvases are private to your account."><Creations /></Protected>} />
+              <Route path="/studio" element={<Protected title="Sign in to open the Design Studio" description="Your saved canvases, motifs and versions are private to your account."><Creations /></Protected>} />
+              <Route path="/creations" element={<Protected title="Sign in to view your creations" description="Saved studio canvases are private to your account."><Creations /></Protected>} />
               <Route path="/studio/:designId" element={<Protected title="Sign in to open the legacy studio" description="Legacy studio canvases are private to your account."><Studio /></Protected>} />
               <Route path="/legacy/dashboard" element={<Protected title="Sign in to open the legacy studio" description="The original studio dashboard is kept as an archive."><LegacyDashboard /></Protected>} />
               <Route path="*" element={<NotFound />} />

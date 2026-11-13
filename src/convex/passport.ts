@@ -123,7 +123,10 @@ export const getMine = query({
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
       .unique();
     if (!passport) return null;
-    return { passport, record: await recordFor(ctx, project) };
+    return {
+      passport,
+      record: { ...(await recordFor(ctx, project)), sampleLabel: passport.demoLabel ?? null },
+    };
   },
 });
 
@@ -139,7 +142,7 @@ export const publicGet = query({
     if (!project || project.status !== "completed") return null;
     return {
       token: passport.shareToken,
-      record: await recordFor(ctx, project),
+      record: { ...(await recordFor(ctx, project)), sampleLabel: passport.demoLabel ?? null },
     };
   },
 });

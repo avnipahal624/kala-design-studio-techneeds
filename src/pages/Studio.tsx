@@ -16,6 +16,8 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { CRAFT_BY_ID, MOTIF_BY_ID, PRODUCT_BY_ID, PRODUCT_TYPES } from "@/lib/crafts";
 import {
   Component,
+  lazy,
+  Suspense,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
   useEffect,
@@ -41,12 +43,17 @@ import {
   SlidersHorizontal,
   Undo2,
   Copy,
+  Box,
+  Square,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { useMutation, useQuery } from "convex/react";
 import { toast } from "sonner";
 import { uid, type CanvasState, type DesignLayer } from "@/lib/design-types";
 import { darken, readableInk } from "@/lib/craft-engine";
+
+const Garment3DPreview = lazy(() => import("@/components/studio/Garment3DPreview"));
+const THREE_D_PRODUCTS = new Set(["jacket", "tshirt", "tote"]);
 
 /* ------------------------------------------------------------------ helpers */
 
@@ -110,6 +117,7 @@ export default function Studio() {
   const [versionsOpen, setVersionsOpen] = useState(false);
   const [restoring, setRestoring] = useState<number | null>(null);
   const [compareSaved, setCompareSaved] = useState(false);
+  const [viewMode, setViewMode] = useState<"2d" | "3d">("3d");
 
   const svgRef = useRef<SVGSVGElement>(null);
   const initialisedFor = useRef<string | null>(null);
@@ -125,6 +133,7 @@ export default function Studio() {
     if (!design || initialisedFor.current === design._id) return;
     initialisedFor.current = design._id;
     setCanvas(design.canvas);
+    setViewMode(THREE_D_PRODUCTS.has(design.canvas.productType) ? "3d" : "2d");
     setSavedSnapshot(JSON.stringify(design.canvas));
     setTitle(design.title);
     setPast([]);
@@ -301,6 +310,7 @@ export default function Studio() {
     if (!canvas) return;
     const product = PRODUCT_BY_ID[productType] ?? PRODUCT_TYPES[0];
     commit({ ...canvas, productType, silhouette: product.silhouette });
+    if (!THREE_D_PRODUCTS.has(productType)) setViewMode("2d");
   }
 
   async function handleSave(note = "Edited in studio") {
@@ -677,6 +687,30 @@ export default function Studio() {
           </div>
         </div>
         <div className="flex items-center gap-2 border-t border-maroon/10 px-3 py-1.5 md:px-4">
+          <div className="flex items-center rounded-full border border-maroon/15 bg-card p-0.5">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className={`h-7 gap-1 rounded-full px-2.5 text-[10px] ${viewMode === "2d" ? "bg-maroon text-ivory hover:bg-maroon-deep hover:text-ivory" : "text-maroon/65"}`}
+              onClick={() => setViewMode("2d")}
+            >
+              <Square className="size-3" /> 2D
+            </Button>
+            {THREE_D_PRODUCTS.has(canvas.productType) && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className={`h-7 gap-1 rounded-full px-2.5 text-[10px] ${viewMode === "3d" ? "bg-maroon text-ivory hover:bg-maroon-deep hover:text-ivory" : "text-maroon/65"}`}
+                onClick={() => setViewMode("3d")}
+                title="Interactive 3D preview"
+              >
+                <Box className="size-3" /> 3D
+              </Button>
+            )}
+          </div>
+          <span className="h-4 w-px bg-maroon/15" />
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
@@ -798,6 +832,11 @@ export default function Studio() {
               }}
             >
               <StudioErrorBoundary>
+                {viewMode === "3d" && THREE_D_PRODUCTS.has(canvas.productType) ? (
+                  <Suspense fallback={<div className="grid min-h-[420px] place-items-center rounded-xl border border-maroon/20 bg-[#fbf6eb]"><span className="flex items-center gap-2 text-xs text-maroon/60"><Loader2 className="size-4 animate-spin" /> Loading 3D studio…</span></div>}>
+                    <Garment3DPreview canvas={canvas} />
+                  </Suspense>
+                ) : (
                 <div className="relative rounded-xl border border-maroon/20 bg-[#fbf6eb] shadow-[0_1px_0_rgba(255,255,255,0.6)_inset]">
                   <svg
                     ref={svgRef}
@@ -943,11 +982,12 @@ export default function Studio() {
                     </div>
                   )}
                 </div>
+                )}
 
                 <div className="mt-2 flex flex-wrap items-center justify-between gap-2 px-1">
                   <p className="flex items-center gap-1.5 text-[10px] text-ink/55">
                     <RotateCw className="size-3" />
-                    Drag to move · corner to resize · top dot to rotate
+                    {viewMode === "3d" ? "Drag to rotate · switch to 2D to move motifs" : "Drag to move · corner to resize · top dot to rotate"}
                   </p>
                   <div className="flex items-center gap-2">
                     <div className="flex overflow-hidden rounded ring-1 ring-ink/10">

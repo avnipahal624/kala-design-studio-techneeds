@@ -35,6 +35,21 @@ export const GARMENT_SHAPES: Record<string, GarmentShape> = {
     },
     safeArea: { x: 300, y: 210, w: 300, h: 520 },
   },
+  tshirt: {
+    body: "M450 156 C414 156 388 164 364 180 L262 238 L330 376 L326 356 L326 774 C380 790 520 790 574 774 L574 356 L570 376 L638 238 L536 180 C512 164 486 156 450 156 Z",
+    detail: (fabric) => {
+      const shade = darken(fabric, 0.35);
+      return (
+        <g>
+          <path d="M408 160 Q450 208 492 160" fill="none" stroke={shade} strokeWidth="8" strokeLinecap="round" opacity="0.38" />
+          <path d="M330 238 Q340 224 356 218" fill="none" stroke={shade} strokeWidth="1.4" opacity="0.3" />
+          <path d="M570 238 Q560 224 544 218" fill="none" stroke={shade} strokeWidth="1.4" opacity="0.3" />
+          <path d="M334 764 Q450 780 566 764" fill="none" stroke={shade} strokeWidth="1.2" opacity="0.22" />
+        </g>
+      );
+    },
+    safeArea: { x: 348, y: 250, w: 204, h: 470 },
+  },
   kurta: {
     body: "M450 138 C410 138 372 148 348 168 L258 226 L236 340 L318 360 L330 300 L322 800 C380 818 520 818 578 800 L570 300 L582 360 L664 340 L642 226 L552 168 C528 148 490 138 450 138 Z",
     detail: (fabric) => {

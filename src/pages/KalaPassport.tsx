@@ -35,6 +35,7 @@ type PassportRecord = {
   approvedConceptTitle: string | null;
   approvedConceptApprovedAt: number | null;
   completedAt: number | null;
+  sampleLabel?: string | null;
   artisans: {
     name: string;
     city: string;
@@ -87,6 +88,12 @@ function Certificate({
             <p className="mt-1 text-[8px] uppercase tracking-[0.12em] text-ink/35">Completed {formatDate(record.completedAt)}</p>
           </div>
         </div>
+
+        {record.sampleLabel && (
+          <p className="mt-5 border border-gold/40 bg-gold/[0.08] px-3 py-2 text-center text-[9px] leading-relaxed text-[#7a4f10]">
+            {record.sampleLabel}
+          </p>
+        )}
 
         <div className="mt-10 text-center">
           <p className="label-caps text-[8px] text-maroon/50">This is the recorded story of</p>
