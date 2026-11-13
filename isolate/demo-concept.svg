@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Illustrative artisan concept sketch of mandala placement on a white sneaker">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0v40" fill="none" stroke="#c9a77f" stroke-width=".7" opacity=".25"/>
+    </pattern>
+    <filter id="paperShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#7b2040" flood-opacity=".12"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="800" fill="#fdf2de"/>
+  <rect width="1200" height="800" fill="url(#grid)"/>
+  <g filter="url(#paperShadow)">
+    <rect x="95" y="70" width="1010" height="660" rx="12" fill="#fffaf0" stroke="#d9bf9e" stroke-width="3"/>
+  </g>
+
+  <text x="145" y="135" font-family="Georgia, serif" font-size="26" fill="#7b2040">Concept v1 · sneaker mandala</text>
+  <text x="145" y="166" font-family="Arial, sans-serif" font-size="15" fill="#7b2040" opacity=".6">ARTISAN SKETCH — PLACEMENT AND COLOUR STUDY · NOT AI-GENERATED</text>
+  <path d="M145 188h910" stroke="#d9bf9e" stroke-width="2"/>
+
+  <g transform="translate(170 260) rotate(-3 370 170)">
+    <path d="M65 245c43-19 85-71 151-99 43-19 91-25 136-13 37 9 72 30 101 55 28 26 58 43 101 51 36 7 56 24 61 50 5 23-7 42-34 51-39 12-102 19-190 17-116-2-200-10-267-23-43-8-67-22-73-42-6-21 2-37 14-47Z" fill="#fffdf8" stroke="#7b2040" stroke-width="5"/>
+    <path d="M65 245c63 6 138 12 213 17 99 6 186 30 262 37 35 3 66 2 92 0l6 35c-49 14-126 19-223 17-116-2-200-10-267-23-43-8-67-22-73-42-4-16 2-29 14-38Z" fill="#f4e8d6" stroke="#7b2040" stroke-width="4"/>
+    <path d="M68 291c83 10 182 17 271 22 92 5 181-1 266-13 24-4 38 7 37 26-2 24-29 42-74 51-80 17-201 17-333 0-101-13-157-28-185-50-13-10-16-23 18-36Z" fill="#eddfc9" stroke="#7b2040" stroke-width="4"/>
+
+    <g fill="none" stroke="#087f83" stroke-width="3">
+      <circle cx="330" cy="245" r="18"/>
+      <circle cx="330" cy="245" r="34"/>
+      <circle cx="330" cy="245" r="50" stroke-dasharray="5 5"/>
+      <path d="M330 189c14 19 14 35 0 56-14-21-14-37 0-56ZM330 301c14-19 14-35 0-56-14 21-14 37 0 56ZM274 245c19 14 35 14 56 0-21-14-37-14-56 0ZM386 245c-19 14-35 14-56 0 21-14 37-14 56 0Z"/>
+      <path d="M286 201l14 14M374 201l-14 14M286 289l14-14M374 289l-14-14"/>
+    </g>
+    <g fill="#f2a33a" opacity=".9">
+      <circle cx="330" cy="245" r="9"/>
+      <circle cx="330" cy="195" r="4"/>
+      <circle cx="330" cy="295" r="4"/>
+      <circle cx="280" cy="245" r="4"/>
+      <circle cx="380" cy="245" r="4"/>
+    </g>
+    <g fill="none" stroke="#7b2040" stroke-width="2.5">
+      <path d="M150 228c37 16 66 14 88-4M182 199c31 15 56 15 77 1M215 174c27 13 49 13 66 1"/>
+    </g>
+    <g fill="none" stroke="#d94b39" stroke-width="2.5" opacity=".9">
+      <path d="M404 292c-18 17-24 39-18 64M422 292c18 17 24 39 18 64M376 340c-14 10-21 24-21 41M450 340c14 10 21 24 21 41"/>
+    </g>
+    <path d="M63 247c-13 4-21 14-21 27 0 18 13 33 38 43" fill="none" stroke="#7b2040" stroke-width="4"/>
+  </g>
+
+  <g stroke="#343e87" stroke-width="3" fill="none">
+    <path d="M702 300c60-30 125-26 185 12"/>
+    <path d="M887 312l-16-3M887 312l-9 13"/>
+  </g>
+  <text x="720" y="285" font-family="Georgia, serif" font-size="18" fill="#343e87">Mandala wraps the outer panel</text>
+
+  <g stroke="#343e87" stroke-width="3" fill="none">
+    <path d="M705 460c55 23 120 24 180 2"/>
+    <path d="M885 462l-15-4M885 462l-9 13"/>
+  </g>
+  <text x="720" y="448" font-family="Georgia, serif" font-size="18" fill="#343e87">Mask eyelets and sole edge</text>
+
+  <g transform="translate(720 520)">
+    <text font-family="Arial, sans-serif" font-size="15" fill="#7b2040" opacity=".75">PALETTE</text>
+    <g transform="translate(0 18)">
+      <rect width="42" height="42" rx="21" fill="#343e87"/>
+      <rect x="54" width="42" height="42" rx="21" fill="#087f83"/>
+      <rect x="108" width="42" height="42" rx="21" fill="#f2a33a"/>
+      <rect x="162" width="42" height="42" rx="21" fill="#d94b39"/>
+      <rect x="216" width="42" height="42" rx="21" fill="#e66a99"/>
+    </g>
+    <text y="92" font-family="Arial, sans-serif" font-size="14" fill="#7b2040" opacity=".65">Indigo · peacock · saffron · vermilion · rani</text>
+  </g>
+
+  <g transform="translate(145 640)">
+    <rect width="300" height="44" rx="8" fill="#7b2040" opacity=".06"/>
+    <text x="16" y="28" font-family="Arial, sans-serif" font-size="15" fill="#7b2040">Artisan concept · usage: display + project delivery</text>
+  </g>
+</svg>
