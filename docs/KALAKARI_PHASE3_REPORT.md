@@ -2,6 +2,8 @@
 
 Date: 13 November 2026
 
+> Historical phase record. The 391-record figures describe Phase 3 before the Phase 4 Atlas, KalaTrack, sandbox payout and verification work. See `KALAKARI_PHASE4_REPORT.md` for current counts and status.
+
 ## Executive summary
 
 Phase 3 addressed the main reason the prototype felt unfinished: the application was well structured but almost empty. The development deployment had only two users, one artisan profile, one open brief, no projects, no collaboration plans and no passports.

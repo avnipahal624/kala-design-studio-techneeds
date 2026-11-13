@@ -78,7 +78,7 @@ export function KalaTrackList() {
             </p>
           </div>
           <Button asChild variant="outline" className="rounded-full border-maroon/25 text-maroon">
-            <Link to="/customer/projects">Open project workspace <ArrowUpRight className="size-3.5" /></Link>
+            <Link to={role === "artisan" ? "/artisan/projects" : "/customer/projects"}>Open project workspace <ArrowUpRight className="size-3.5" /></Link>
           </Button>
         </div>
 

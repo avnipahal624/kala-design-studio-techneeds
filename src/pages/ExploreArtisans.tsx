@@ -116,9 +116,12 @@ export default function ExploreArtisans() {
             </label>
           </div>
           {hasFilters && (
-            <button type="button" onClick={() => { setDraftCity(""); setParams({}, { replace: true }); }} className="mt-3 text-[11px] font-semibold text-vermilion hover:underline">
-              Clear all filters
-            </button>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              {state && <span className="rounded-full border border-teal/25 bg-teal/[0.06] px-2.5 py-1 text-[9px] font-semibold text-teal-deep">State: {state}</span>}
+              <button type="button" onClick={() => { setDraftCity(""); setParams({}, { replace: true }); }} className="text-[11px] font-semibold text-vermilion hover:underline">
+                Clear all filters
+              </button>
+            </div>
           )}
         </div>
 

@@ -1,7 +1,7 @@
 import { PublicShell } from "@/components/public/PublicShell";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
-import { formatInr } from "@/lib/marketplace";
+import { formatDate, formatInr } from "@/lib/marketplace";
 import type { CanvasState } from "@/lib/design-types";
 import { useQuery } from "convex/react";
 import {
@@ -362,6 +362,52 @@ export default function DemoLive() {
                     </div>
                   ))}
                   <p className="mt-3 text-[9px] leading-relaxed text-ink/40">{data.sandboxPayout.feeNote}</p>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {data?.trackPreview && (
+            <section className="rounded-3xl border border-maroon/15 bg-card p-5 sm:p-6">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gold">KalaTrack · dated production preview</p>
+                  <h2 className="mt-1 font-display text-3xl font-semibold text-maroon">The record behind the finished object.</h2>
+                  <p className="mt-2 max-w-[66ch] text-sm leading-relaxed text-ink/55">
+                    A read-only view of one completed sample project: planned deadline, actual event timestamps, milestones and the recorded production stages. Your own KalaTrack is private to your account.
+                  </p>
+                </div>
+                <Chip tone="green"><CheckCircle2 className="size-3" /> Completed sample</Chip>
+              </div>
+              <div className="mt-5 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+                <div className="rounded-2xl border border-maroon/10 bg-[#fbf5e8] p-4">
+                  <p className="font-display text-2xl font-semibold text-maroon">{data.trackPreview.title}</p>
+                  <p className="mt-1 text-[10px] text-ink/45">{formatInr(data.trackPreview.amountInr)} · planned {data.trackPreview.plannedDeadline ? formatDate(data.trackPreview.plannedDeadline) : "date not stated"}</p>
+                  <div className="mt-4 grid grid-cols-5 gap-1">
+                    {["Confirmed", "Production", "Review", "Handover", "Complete"].map((label, index) => (
+                      <div key={label}>
+                        <div className={`flex h-7 items-center justify-center rounded-full border text-[8px] font-semibold ${index < 4 ? "border-maroon bg-maroon text-ivory" : "border-maroon bg-gold/30 text-maroon"}`}>{index < 4 ? <CheckCircle2 className="size-3" /> : "5"}</div>
+                        <p className="mt-1 text-center text-[7px] leading-tight text-ink/45">{label}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-3 text-[9px] leading-relaxed text-ink/40">Stage labels are derived from the existing project status; timestamps below come from KalaProof events.</p>
+                  <Link to="/track" className="mt-3 inline-flex items-center gap-1 text-[9px] font-semibold text-teal hover:text-maroon">Open your KalaTrack <ArrowRight className="size-3" /></Link>
+                </div>
+                <div className="rounded-2xl border border-maroon/10 bg-[#fbf5e8] p-4">
+                  <p className="text-[8px] font-semibold uppercase tracking-[0.12em] text-ink/35">Recent recorded events</p>
+                  <ol className="mt-3 space-y-2">
+                    {data.trackPreview.events.map((event, index) => (
+                      <li key={`${event.createdAt}-${index}`} className="flex gap-2.5">
+                        <span className={`mt-1 size-2.5 shrink-0 rounded-full border ${index === data.trackPreview!.events.length - 1 ? "border-maroon bg-gold" : "border-maroon/30 bg-card"}`} />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] font-semibold leading-tight text-maroon">{event.title}</p>
+                          <p className="mt-0.5 text-[8px] text-ink/40">{formatDate(event.createdAt)} · server-recorded</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                  {data.trackPreview.milestones.length > 0 && <p className="mt-3 border-t border-maroon/10 pt-2 text-[8px] text-ink/40">{data.trackPreview.milestones.length} milestone records attached.</p>}
                 </div>
               </div>
             </section>

@@ -52,6 +52,7 @@ type PassportRecord = {
     craft: string;
     verification: string;
     skills: string[];
+    role?: string;
   }[];
   timeline: {
     title: string;
@@ -163,7 +164,7 @@ function Certificate({
                     </span>
                     <div>
                       <p className="font-display text-lg font-semibold leading-none text-ink">{artisan.name}</p>
-                      <p className="mt-1 text-[9px] text-ink/50">{artisan.craft} · {artisan.city}</p>
+                      <p className="mt-1 text-[9px] text-ink/50">{artisan.craft} · {artisan.city}{artisan.role ? ` · ${artisan.role}` : ""}</p>
                       <p className="mt-1 flex items-center gap-1 text-[8px] uppercase tracking-[0.08em] text-teal">
                         <BadgeCheck className="size-2.5" /> {artisan.verification === "verified" ? "Documents verified" : "Verification not claimed"}
                       </p>
@@ -332,7 +333,7 @@ export function KalaPassportPrivate() {
   const [evidenceImages, setEvidenceImages] = useState<UploadedImage[]>([]);
   const [evidenceForm, setEvidenceForm] = useState({
     craftTradition: "", heritageRegion: "", productionLocation: "", materialsOrigin: "",
-    publicEvidenceSummary: "", evidenceNotes: "", shareProductionLocation: false, shareArtisanNames: true,
+    publicEvidenceSummary: "", evidenceNotes: "",
   });
   const [reviewScope, setReviewScope] = useState("");
   const [reviewNote, setReviewNote] = useState("");
@@ -557,8 +558,13 @@ export function KalaPassportPrivate() {
                 <p className="label-caps text-[8px] text-teal">Evidence record · no badge until reviewed</p>
                 <h2 className="mt-1 font-display text-2xl font-semibold text-maroon">Submit structured craft evidence</h2>
                 <p className="mt-1 text-[10px] leading-relaxed text-ink/50">
-                  Describe the tradition, heritage region, actual production place and materials origin separately. Supporting files stay private; only your public summary is shown in the shared passport.
+                  Describe the tradition, heritage region, actual production place and materials origin separately. Supporting files stay private; only your public summary is shown in the shared passport. Submitting here replaces the current evidence draft.
                 </p>
+                {(passport.passport.craftTradition || passport.passport.heritageRegion) && (
+                  <p className="mt-2 rounded-lg border border-gold/25 bg-gold/[0.06] p-2.5 text-[9px] leading-relaxed text-[#74572c]">
+                    Current record: {passport.passport.craftTradition ?? "craft not set"} · {passport.passport.heritageRegion ?? "heritage region not set"} · production {passport.passport.productionLocation ?? "not recorded"} ({passport.passport.shareProductionLocation ? "public" : "private"}).
+                  </p>
+                )}
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   {([
                     ["craftTradition", "Craft tradition", "e.g. Kantha embroidery"],
@@ -585,16 +591,9 @@ export function KalaPassportPrivate() {
                   Private note for the reviewer
                   <textarea value={evidenceForm.evidenceNotes} onChange={(event) => setEvidenceForm((current) => ({ ...current, evidenceNotes: event.target.value }))} rows={2} placeholder="What was submitted, how it relates to the object, and what the reviewer should check." className="mt-1 w-full rounded-lg border border-maroon/15 bg-[#fffaf0] p-2.5 text-[10px] font-normal normal-case tracking-normal leading-relaxed text-ink outline-none focus:border-maroon/40" />
                 </label>
-                <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                  <label className="flex items-start gap-2 rounded-lg border border-maroon/10 bg-[#fbf5e8] p-2.5 text-[9px] leading-relaxed text-ink/55">
-                    <input type="checkbox" checked={evidenceForm.shareProductionLocation} onChange={(event) => setEvidenceForm((current) => ({ ...current, shareProductionLocation: event.target.checked }))} className="mt-0.5 accent-[#7a302a]" />
-                    Show production city/region in the public passport. Off by default.
-                  </label>
-                  <label className="flex items-start gap-2 rounded-lg border border-maroon/10 bg-[#fbf5e8] p-2.5 text-[9px] leading-relaxed text-ink/55">
-                    <input type="checkbox" checked={evidenceForm.shareArtisanNames} onChange={(event) => setEvidenceForm((current) => ({ ...current, shareArtisanNames: event.target.checked }))} className="mt-0.5 accent-[#7a302a]" />
-                    Show artisan names in the public passport. You can turn this off.
-                  </label>
-                </div>
+                <p className="mt-2 rounded-lg border border-maroon/10 bg-[#fbf5e8] p-2.5 text-[9px] leading-relaxed text-ink/50">
+                  Public location and artisan-name visibility are controlled separately under <strong>Public summary controls</strong> below. Submitting evidence does not change those choices.
+                </p>
                 <div className="mt-3"><UploadImages value={evidenceImages} onChange={setEvidenceImages} max={6} label="Private evidence files" hint="Images only, stored privately. Visible to project participants and reviewers, never in the public certificate." /></div>
                 {passport.evidenceFiles.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">

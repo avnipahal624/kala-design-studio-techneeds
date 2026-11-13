@@ -406,15 +406,15 @@ export async function seedDemo(ctx: MutationCtx) {
       await record(ctx, "proof", eventId);
     };
 
-    await addProof("quote_accepted", "Quotation accepted", createdAt + 2 * DAY, "Demo quotation accepted by the customer.");
-    await addProof("concept_uploaded", "Design direction agreed", createdAt + 2 * DAY + 3_600_000);
+    await addProof("quote_accepted", "Quotation accepted", createdAt + 6 * 3_600_000, "Demo quotation accepted by the customer.");
+    await addProof("concept_uploaded", "Design direction agreed", createdAt + 8 * 3_600_000);
     if (fundedAt) {
-      await addProof("concept_approved", "Customer approved the design direction", fundedAt - 6 * 3_600_000);
+      await addProof("concept_approved", "Customer approved the design direction", createdAt + 12 * 3_600_000);
       await addProof("payment_confirmed", "Sandbox payment confirmed", fundedAt, "Recorded in demo mode only; no live money moved.");
     }
     if (startedAt) {
-      await addProof("production_started", "Work started at the bench", startedAt);
-      await addProof("progress_uploaded", "Progress update added", startedAt + 4 * DAY, "A mid-production photograph and note were added to the project record.");
+      await addProof("production_started", "Work started at the bench", createdAt + 2 * DAY);
+      await addProof("progress_uploaded", "Progress update added", createdAt + 6 * DAY, "A mid-production photograph and note were added to the project record.");
     }
     if (deliveredAt) {
       await addProof("product_delivered", "Finished piece delivered", deliveredAt);
@@ -1080,6 +1080,30 @@ export const showcase = query({
       });
     }
 
+    const trackRow = rows.find((entry) => entry.entityType === "project");
+    let trackPreview = null;
+    if (trackRow) {
+      const candidateProjects = await Promise.all(
+        rows.filter((entry) => entry.entityType === "project").slice(0, 10).map((entry) => ctx.db.get(entry.entityId as Id<"projects">)),
+      );
+      const project = candidateProjects.find((row) => row?.status === "completed") ?? candidateProjects.find((row) => row?.status === "review_pending") ?? candidateProjects[0];
+      if (project) {
+        const [events, milestones, request] = await Promise.all([
+          ctx.db.query("kalaProofEvents").withIndex("by_project_created", (q) => q.eq("projectId", project._id)).order("asc").take(30),
+          ctx.db.query("orderMilestones").withIndex("by_project_position", (q) => q.eq("projectId", project._id)).order("asc").take(8),
+          ctx.db.get(project.requestId),
+        ]);
+        trackPreview = {
+          title: project.title,
+          status: project.status,
+          amountInr: project.amountInr,
+          plannedDeadline: request?.deadline ?? null,
+          events: events.slice(-6).map((event) => ({ title: event.title, type: event.type, createdAt: event.createdAt })),
+          milestones: milestones.map((milestone) => ({ title: milestone.title, status: milestone.status, dueAt: milestone.dueAt ?? null })),
+        };
+      }
+    }
+
     const payoutRow = rows.find((entry) => entry.entityType === "payoutPlan");
     let sandboxPayout = null;
     if (payoutRow) {
@@ -1205,6 +1229,7 @@ export const showcase = query({
       artisans: artisans.filter((artisan) => artisan !== null),
       plans,
       passports,
+      trackPreview,
       sandboxPayout,
       makerWorkspace,
     };

@@ -22,17 +22,40 @@ The demo is designed to make the marketplace, public profiles, KalaCollab showca
 | Collaboration plans | 3 |
 | Collaboration tasks | 9 |
 | KalaPassports | 5 |
+| Passport review history entries | 13 |
 | Sandbox payment orders | 15 |
 | Sandbox payment transactions | 14 |
-| Sandbox payouts | 10 |
+| Legacy per-project payout records | 10 |
+| Sandbox payout plans | 1 |
+| Sandbox payout allocations | 3 |
+| Sandbox payout ledger entries | 9 |
+| Sandbox payout balances | 3 |
 | Feasibility reviews | 6 |
 | Conversations | 4 |
 | Messages | 16 |
 | Notifications | 14 |
 | KalaProof events | 104 |
-| Total tracked demo entities | 391 |
+| Total tracked demo entities | 420 |
 
 The counts above are returned by `demo:seed` and can be checked again with `demo:adminStatus` when signed in as an admin.
+
+## Passport verification states
+
+The five sample passports deliberately cover the workflow:
+
+| Token | Sample status | Public |
+| --- | --- | --- |
+| `demo-passport-1` | verified by a named sample reviewer, with limitations | yes |
+| `demo-passport-2` | evidence submitted, not reviewed | yes |
+| `demo-passport-3` | under review | yes |
+| `demo-passport-4` | review declined | yes |
+| `demo-passport-5` | verification revoked | no |
+
+The review decisions are fictional and are not evidence of a real verification. The revoked record intentionally has no working public link, so the demo has no broken passport link.
+
+## Sandbox payout split
+
+The seed creates one simulated three-artisan split on a completed sample project. It has integer-paise gross, platform fee and distributable totals, three reconciled allocations, nine ledger movements and three available balances. It is labelled as a sandbox simulation; no provider transfer occurred.
 
 ## Artisans
 

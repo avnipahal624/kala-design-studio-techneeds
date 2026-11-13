@@ -47,6 +47,26 @@ async function recordFor(ctx: QueryCtx | MutationCtx, project: Doc<"projects">, 
     .withIndex("by_project_created", (q) => q.eq("projectId", project._id))
     .order("asc")
     .take(200);
+  const collabTasks = await ctx.db
+    .query("collaborationTasks")
+    .withIndex("by_request", (q) => q.eq("requestId", project.requestId))
+    .take(20);
+  const participantRoles = new Map<string, string>();
+  for (const task of collabTasks) {
+    if (task.artisanId && ["accepted", "in_progress", "submitted", "approved"].includes(task.status)) {
+      participantRoles.set(task.artisanId, task.role);
+    }
+  }
+  const participantIds = [...new Set([project.artisanId, ...participantRoles.keys()])];
+  const participantProfiles = await Promise.all(
+    participantIds.map(async (artisanId) => {
+      if (artisanId === project.artisanId) return profile;
+      return await ctx.db
+        .query("artisanProfiles")
+        .withIndex("by_user", (q) => q.eq("userId", artisanId as Doc<"users">["_id"]))
+        .unique();
+    }),
+  );
 
   const verificationStatus = passport.reviewStatus ?? "unreviewed";
   const showArtisanName = !publicView || passport.shareArtisanNames !== false;
@@ -66,17 +86,16 @@ async function recordFor(ctx: QueryCtx | MutationCtx, project: Doc<"projects">, 
     approvedConceptTitle: approved?.title ?? null,
     approvedConceptApprovedAt: approved?.reviewedAt ?? project.conceptApprovedAt ?? null,
     completedAt: project.completedAt ?? project.deliveredAt ?? null,
-    artisans: profile
-      ? [
-          {
-            name: showArtisanName ? profile.displayName : "Participating artisan (identity private)",
-            city: showArtisanName ? profile.city : "Location private",
-            craft: profile.craftHeadline,
-            verification: profile.verificationStatus,
-            skills: profile.skills.slice(0, 5),
-          },
-        ]
-      : [],
+    artisans: participantProfiles
+      .filter((participant): participant is NonNullable<typeof participant> => Boolean(participant))
+      .map((participant) => ({
+        name: showArtisanName ? participant.displayName : "Participating artisan (identity private)",
+        city: showArtisanName ? participant.city : "Location private",
+        craft: participant.craftHeadline,
+        verification: participant.verificationStatus,
+        skills: participant.skills.slice(0, 5),
+        role: participantRoles.get(participant.userId) ?? "Lead artisan",
+      })),
     verification: {
       status: verificationStatus,
       label:
@@ -294,6 +313,8 @@ export const submitEvidence = mutation({
       reviewScope: undefined,
       reviewedAt: undefined,
       verificationLimitations: undefined,
+      revokedAt: undefined,
+      revocationReason: undefined,
       updatedAt: now,
     });
     await ctx.db.insert("passportReviews", {
