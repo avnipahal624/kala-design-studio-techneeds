@@ -52,7 +52,11 @@ function AdminBody({ section }: { section: string }) {
 function Overview() {
   const stats = useQuery(api.admin.stats);
   const seed = useMutation(api.admin.createSampleArtisans);
+  const seedDemoData = useMutation(api.demo.seedAsAdmin);
+  const resetDemoData = useMutation(api.demo.resetAsAdmin);
+  const demoStatus = useQuery(api.demo.adminStatus);
   const [busy, setBusy] = useState(false);
+  const [demoBusy, setDemoBusy] = useState(false);
   if (stats === undefined) return <div className="h-64 animate-pulse rounded-2xl bg-card" />;
   return (
     <div className="space-y-5">
@@ -71,6 +75,23 @@ function Overview() {
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a5a12]">Demo data</p>
         <p className="mt-1 text-[11px] leading-relaxed text-ink/60">Sample artisans are clearly labelled, have no login, no verification badge and no reviews. They are excluded from matching unless a real artisan updates a profile. Do not use sample data to imply real supply.</p>
         <Button size="sm" variant="outline" className="mt-2 rounded-full border-maroon/25" disabled={busy} onClick={async () => { setBusy(true); try { const result = await seed({}); toast.success(`${result.created ?? "Sample"} artisans created.`); } catch (error) { toast.error(error instanceof Error ? error.message.replace(/^[A-Z_]+:\s*/, "") : "Could not create sample data."); } finally { setBusy(false); } }}>{busy ? <Loader2 className="size-3.5 animate-spin" /> : null} Seed labelled sample artisans</Button>
+      </section>
+      <section className="rounded-2xl border border-maroon/15 bg-card p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-maroon/55">Phase 3 demo environment</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-ink/60">
+              22 fictional artisans, 52 portfolio pieces, 20 briefs, 24 quotes, 15 projects, 3 KalaCollab scenarios, 20 reviews and 5 public sample passports. All records are labelled and tracked for reset. This does not modify genuine users or trigger payments.
+            </p>
+            <p className="mt-1 text-[10px] font-semibold text-emerald">
+              {demoStatus?.populated ? `Seeded · ${demoStatus.counts.artisanUser ?? 0} artisan accounts · ${demoStatus.counts.project ?? 0} projects` : "Not currently seeded"}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" className="rounded-full bg-maroon text-ivory" disabled={demoBusy || demoStatus?.populated} onClick={async () => { setDemoBusy(true); try { const result = await seedDemoData({}); toast.success(result.seeded ? "Demo marketplace seeded." : result.reason ?? "Demo data already present."); } catch (error) { toast.error(error instanceof Error ? error.message.replace(/^[A-Z_]+:\s*/, "") : "Could not seed demo data."); } finally { setDemoBusy(false); } }}>{demoBusy ? <Loader2 className="size-3.5 animate-spin" /> : null} Seed full demo marketplace</Button>
+            <Button size="sm" variant="outline" className="rounded-full border-vermilion/30 text-vermilion" disabled={demoBusy || !demoStatus?.populated} onClick={async () => { if (!window.confirm("Reset only the Phase 3 demo records? Genuine users and projects are not touched.")) return; setDemoBusy(true); try { const result = await resetDemoData({}); toast.success(`${result.removed} demo records removed.`); } catch (error) { toast.error(error instanceof Error ? error.message.replace(/^[A-Z_]+:\s*/, "") : "Could not reset demo data."); } finally { setDemoBusy(false); } }}>Reset demo records</Button>
+          </div>
+        </div>
       </section>
     </div>
   );

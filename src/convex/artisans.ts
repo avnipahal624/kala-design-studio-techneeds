@@ -328,7 +328,9 @@ export const directory = query({
           .first();
         return {
           ...publicArtisan(profile),
-          previewUrl: preview?.image ? await ctx.storage.getUrl(preview.image.storageId) : null,
+          previewUrl: preview?.image
+            ? await ctx.storage.getUrl(preview.image.storageId)
+            : preview?.externalUrl ?? null,
         };
       }),
     );
@@ -424,7 +426,9 @@ export const matchesForRequest = query({
         score: match.score,
         reasons: match.reasons,
         breakdown: match.breakdown,
-        previewUrl: preview?.image ? await ctx.storage.getUrl(preview.image.storageId) : null,
+        previewUrl: preview?.image
+          ? await ctx.storage.getUrl(preview.image.storageId)
+          : preview?.externalUrl ?? null,
       });
     }
     return results.sort((a, b) => b.score - a.score).slice(0, 12);

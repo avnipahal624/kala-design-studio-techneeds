@@ -100,6 +100,12 @@ function ScreenOne({ next }: { next: () => void }) {
             Start customising <ArrowRight className="size-4" />
           </Button>
           <Link
+            to="/demo/live"
+            className="inline-flex items-center gap-2 rounded-full border border-maroon/25 bg-card px-5 py-3 text-sm font-semibold text-maroon transition hover:border-maroon/55 hover:bg-parchment"
+          >
+            Explore the populated demo <ArrowRight className="size-4" />
+          </Link>
+          <Link
             to="/customer/create-request"
             className="inline-flex items-center gap-2 rounded-full border border-teal/35 bg-card px-5 py-3 text-sm font-semibold text-teal-deep transition hover:border-teal/70 hover:bg-mint/40"
           >

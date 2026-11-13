@@ -42,7 +42,9 @@ export async function portfolioWithUrls(ctx: Ctx, artisanId: Doc<"artisanProfile
   return await Promise.all(
     items.map(async (item) => ({
       ...item,
-      url: item.image ? await ctx.storage.getUrl(item.image.storageId) : null,
+      url: item.image
+        ? await ctx.storage.getUrl(item.image.storageId)
+        : item.externalUrl ?? null,
     })),
   );
 }

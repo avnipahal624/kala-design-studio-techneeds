@@ -33,6 +33,7 @@ import AdminDashboard, {
 
 // Legacy studio routes stay available but are no longer part of the marketplace navigation.
 const DemoPage = lazy(() => import("./pages/Demo"));
+const DemoLive = lazy(() => import("./pages/DemoLive"));
 const AuthPage = lazy(() => import("./pages/Auth.tsx"));
 const LegacyDashboard = lazy(() => import("./pages/Dashboard.tsx"));
 const KalaVision = lazy(() => import("./pages/KalaVision.tsx"));
@@ -110,6 +111,7 @@ createRoot(document.getElementById("root")!).render(
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/demo" element={<DemoPage />} />
+              <Route path="/demo/live" element={<DemoLive />} />
               <Route path="/how-it-works" element={<HowItWorksPage />} />
               <Route path="/explore-artisans" element={<ExploreArtisans />} />
               <Route path="/kalacollab" element={<KalaCollabPage />} />

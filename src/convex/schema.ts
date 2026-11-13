@@ -386,6 +386,7 @@ const schema = defineSchema(
       briefSummary: v.optional(v.string()),
       missingInfo: v.array(v.string()),
       analysis: v.optional(v.any()),
+      demoLabel: v.optional(v.string()),
       status: requestStatusValidator,
       publishedAt: v.number(),
       closedAt: v.optional(v.number()),
@@ -437,6 +438,7 @@ const schema = defineSchema(
       depositPercent: v.number(),
       terms: v.string(),
       note: v.optional(v.string()),
+      demoLabel: v.optional(v.string()),
       version: v.number(),
       status: quoteStatusValidator,
       expiresAt: v.optional(v.number()),
@@ -483,6 +485,7 @@ const schema = defineSchema(
       ),
       combinedBudgetInr: v.number(),
       note: v.optional(v.string()),
+      demoLabel: v.optional(v.string()),
       approvedAt: v.optional(v.number()),
       completedAt: v.optional(v.number()),
       createdAt: v.number(),
@@ -517,6 +520,7 @@ const schema = defineSchema(
       plannedAmountInr: v.number(),
       quotedAmountInr: v.optional(v.number()),
       artisanNote: v.optional(v.string()),
+      demoLabel: v.optional(v.string()),
       startedAt: v.optional(v.number()),
       submittedAt: v.optional(v.number()),
       approvedAt: v.optional(v.number()),
@@ -563,6 +567,7 @@ const schema = defineSchema(
       deliveredAt: v.optional(v.number()),
       completedAt: v.optional(v.number()),
       cancellationReason: v.optional(v.string()),
+      demoLabel: v.optional(v.string()),
       createdAt: v.number(),
       updatedAt: v.number(),
     })
@@ -578,6 +583,7 @@ const schema = defineSchema(
       customerId: v.id("users"),
       shareToken: v.string(),
       publicEnabled: v.boolean(),
+      demoLabel: v.optional(v.string()),
       createdAt: v.number(),
       updatedAt: v.number(),
     })
@@ -629,6 +635,7 @@ const schema = defineSchema(
         v.literal("artisan"),
         v.literal("admin"),
       ),
+      demoLabel: v.optional(v.string()),
       createdAt: v.number(),
     })
       .index("by_project", ["projectId"])
@@ -673,6 +680,7 @@ const schema = defineSchema(
         v.literal("failed"),
         v.literal("refunded"),
       ),
+      demoLabel: v.optional(v.string()),
       checkoutReference: v.optional(v.string()),
       createdAt: v.number(),
       paidAt: v.optional(v.number()),
@@ -797,6 +805,7 @@ const schema = defineSchema(
       authorRole: v.union(v.literal("customer"), v.literal("artisan")),
       rating: v.number(),
       body: v.string(),
+      demoLabel: v.optional(v.string()),
       createdAt: v.number(),
     })
       .index("by_subject", ["subjectId", "createdAt"])
@@ -838,6 +847,17 @@ const schema = defineSchema(
     })
       .index("by_subject", ["subjectUserId"])
       .index("by_created", ["createdAt"]),
+
+    demoEntities: defineTable({
+      seedKey: v.string(),
+      entityType: v.string(),
+      entityId: v.string(),
+      label: v.optional(v.string()),
+      createdAt: v.number(),
+    })
+      .index("by_seed", ["seedKey"])
+      .index("by_seed_label", ["seedKey", "label"])
+      .index("by_seed_type", ["seedKey", "entityType"]),
 
     auditEvents: defineTable({
       actorId: v.optional(v.id("users")),
