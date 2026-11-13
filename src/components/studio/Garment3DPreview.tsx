@@ -136,7 +136,7 @@ function drawMotif(layer: DesignLayer) {
   return canvas;
 }
 
-function MotifSurface({ layer }: { layer: DesignLayer }) {
+function MotifSurface({ layer, side = "front" }: { layer: DesignLayer; side?: "left" | "right" | "front" }) {
   const texture = useMemo(() => {
     const canvas = drawMotif(layer);
     if (!canvas) return null;
@@ -147,12 +147,13 @@ function MotifSurface({ layer }: { layer: DesignLayer }) {
   }, [layer]);
 
   if (!texture) return null;
-  const x = ((layer.x - 450) / 450) * 0.44;
-  const y = ((450 - layer.y) / 450) * 0.58;
-  const scale = Math.max(0.12, (layer.size / 900) * 0.75);
+  const rawX = ((layer.x - 450) / 450) * 0.68;
+  const x = side === "left" ? Math.min(-0.07, rawX) : side === "right" ? Math.max(0.07, rawX) : rawX;
+  const y = ((450 - layer.y) / 450) * 0.7;
+  const scale = Math.max(0.12, (layer.size / 900) * 0.78);
   return (
     <Decal
-      position={[x, y, 0.19]}
+      position={[x, y, 0.205]}
       rotation={[0, 0, (-layer.rotation * Math.PI) / 180]}
       scale={[scale, scale, 0.24]}
       polygonOffsetFactor={-4}
@@ -162,34 +163,179 @@ function MotifSurface({ layer }: { layer: DesignLayer }) {
   );
 }
 
-function SurfaceMotifs({ layers }: { layers: DesignLayer[] }) {
-  return <>{layers.slice(0, 6).map((layer) => <MotifSurface key={layer.id} layer={layer} />)}</>;
+function SurfaceMotifs({ layers, side = "front" }: { layers: DesignLayer[]; side?: "left" | "right" | "front" }) {
+  const sideLayers = side === "left"
+    ? layers.filter((layer) => layer.x < 450)
+    : side === "right"
+      ? layers.filter((layer) => layer.x >= 450)
+      : layers;
+  return <>{sideLayers.slice(0, 6).map((layer) => <MotifSurface key={layer.id} layer={layer} side={side} />)}</>;
+}
+
+function makeFabricBump() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  ctx.fillStyle = "#808080";
+  ctx.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 128; i += 4) {
+    const alpha = 0.06 + (Math.sin(i * 0.9) + 1) * 0.015;
+    ctx.strokeStyle = `rgba(40,35,31,${alpha})`;
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i, 128);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, i);
+    ctx.lineTo(128, i);
+    ctx.stroke();
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(5, 5);
+  texture.colorSpace = THREE.NoColorSpace;
+  return texture;
+}
+
+function ClothMaterial({ color, back = false }: { color: string; back?: boolean }) {
+  const bump = useMemo(() => makeFabricBump(), []);
+  return (
+    <meshPhysicalMaterial
+      color={color}
+      roughness={0.86}
+      metalness={0.015}
+      sheen={0.28}
+      sheenColor="#d8a65b"
+      sheenRoughness={0.8}
+      bumpMap={bump ?? undefined}
+      bumpScale={0.006}
+      side={back ? THREE.DoubleSide : THREE.FrontSide}
+    />
+  );
+}
+
+function panelGeometry({
+  topLeft,
+  topRight,
+  bottomLeft,
+  bottomRight,
+  height = 1.82,
+  depth = 0.2,
+  front = true,
+  shoulderDrop = 0.045,
+}: {
+  topLeft: number;
+  topRight: number;
+  bottomLeft: number;
+  bottomRight: number;
+  height?: number;
+  depth?: number;
+  front?: boolean;
+  shoulderDrop?: number;
+}) {
+  const cols = 22;
+  const rows = 30;
+  const positions: number[] = [];
+  const uvs: number[] = [];
+  const indices: number[] = [];
+  for (let row = 0; row <= rows; row++) {
+    const v = row / rows;
+    const y = -height / 2 + v * height;
+    const left = topLeft + (bottomLeft - topLeft) * v;
+    const right = topRight + (bottomRight - topRight) * v;
+    for (let col = 0; col <= cols; col++) {
+      const u = col / cols;
+      const x = left + (right - left) * u;
+      const shoulder = (1 - v) * shoulderDrop * Math.abs(u - 0.5) * 2;
+      const drape = Math.sin(u * Math.PI) * depth * (0.45 + v * 0.55);
+      positions.push(x, y - shoulder, (front ? 1 : -1) * drape);
+      uvs.push(u, v);
+    }
+  }
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const a = row * (cols + 1) + col;
+      const b = a + 1;
+      const c = a + cols + 1;
+      const d = c + 1;
+      if (front) indices.push(a, c, b, b, c, d);
+      else indices.push(a, b, c, b, d, c);
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+function seamGeometry(points: [number, number, number][]) {
+  const curve = new THREE.CatmullRomCurve3(points.map(([x, y, z]) => new THREE.Vector3(x, y, z)));
+  return new THREE.TubeGeometry(curve, 28, 0.012, 6, false);
+}
+
+function GoldSeam({ points }: { points: [number, number, number][] }) {
+  const geometry = useMemo(() => seamGeometry(points), [points]);
+  return (
+    <mesh geometry={geometry} castShadow>
+      <meshStandardMaterial color="#c69a57" roughness={0.55} metalness={0.18} />
+    </mesh>
+  );
 }
 
 function Jacket({ color, layers }: { color: string; layers: DesignLayer[] }) {
+  const left = useMemo(() => panelGeometry({ topLeft: -0.72, topRight: -0.045, bottomLeft: -0.8, bottomRight: -0.06, height: 1.82, depth: 0.2 }), []);
+  const right = useMemo(() => panelGeometry({ topLeft: 0.045, topRight: 0.72, bottomLeft: 0.06, bottomRight: 0.8, height: 1.82, depth: 0.2 }), []);
+  const back = useMemo(() => panelGeometry({ topLeft: -0.72, topRight: 0.72, bottomLeft: -0.8, bottomRight: 0.8, height: 1.82, depth: 0.16, front: false }), []);
   return (
     <group>
-      <RoundedBox args={[1.42, 1.92, 0.36]} radius={0.09} smoothness={4} position={[0, 0.08, 0]} castShadow receiveShadow>
-        <meshStandardMaterial color={color} roughness={0.82} metalness={0.02} />
-        <SurfaceMotifs layers={layers} />
-      </RoundedBox>
-      <RoundedBox args={[0.4, 1.52, 0.34]} radius={0.08} smoothness={4} position={[-0.91, 0.12, 0]} rotation={[0, 0, 0.16]} castShadow>
-        <meshStandardMaterial color={color} roughness={0.84} metalness={0.02} />
-      </RoundedBox>
-      <RoundedBox args={[0.4, 1.52, 0.34]} radius={0.08} smoothness={4} position={[0.91, 0.12, 0]} rotation={[0, 0, -0.16]} castShadow>
-        <meshStandardMaterial color={color} roughness={0.84} metalness={0.02} />
-      </RoundedBox>
-      <mesh position={[0, 1.02, 0.19]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-        <torusGeometry args={[0.27, 0.07, 12, 32, Math.PI]} />
-        <meshStandardMaterial color={color} roughness={0.8} />
+      <mesh geometry={left} castShadow receiveShadow>
+        <ClothMaterial color={color} back />
+        <SurfaceMotifs layers={layers} side="left" />
       </mesh>
-      <mesh position={[0, 0.58, 0.2]} castShadow>
-        <boxGeometry args={[0.055, 0.92, 0.03]} />
-        <meshStandardMaterial color="#d8a65b" roughness={0.55} metalness={0.2} />
+      <mesh geometry={right} castShadow receiveShadow>
+        <ClothMaterial color={color} back />
+        <SurfaceMotifs layers={layers} side="right" />
       </mesh>
-      {[0.04, -0.16, -0.36].map((y) => (
-        <mesh key={y} position={[0, y, 0.215]} castShadow>
-          <sphereGeometry args={[0.032, 12, 12]} />
+      <mesh geometry={back} castShadow receiveShadow>
+        <ClothMaterial color={color} back />
+      </mesh>
+      {[-1, 1].map((side) => (
+        <group key={side}>
+          <mesh position={[side * 0.82, 0.12, -0.01]} rotation={[0, 0, side * 0.34]} castShadow>
+            <cylinderGeometry args={[0.19, 0.245, 1.2, 28, 1, true]} />
+            <ClothMaterial color={color} back />
+          </mesh>
+          <mesh position={[side * 0.98, -0.46, -0.01]} rotation={[0, 0, side * 0.34]} castShadow>
+            <torusGeometry args={[0.2, 0.016, 8, 28]} />
+            <meshStandardMaterial color="#c69a57" roughness={0.55} metalness={0.2} />
+          </mesh>
+        </group>
+      ))}
+      <mesh position={[0, 0.91, 0.01]} castShadow>
+        <cylinderGeometry args={[0.265, 0.3, 0.17, 32, 1, true]} />
+        <ClothMaterial color={color} back />
+      </mesh>
+      <mesh position={[0, 1.0, 0.01]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+        <torusGeometry args={[0.275, 0.018, 8, 40]} />
+        <meshStandardMaterial color="#c69a57" roughness={0.55} metalness={0.18} />
+      </mesh>
+      {[-1, 1].map((side) => (
+        <mesh key={side} position={[side * 0.15, 0.57, 0.195]} rotation={[0, 0, side * 0.16]} castShadow>
+          <boxGeometry args={[0.16, 0.62, 0.035]} />
+          <meshStandardMaterial color={color} roughness={0.78} side={THREE.DoubleSide} />
+        </mesh>
+      ))}
+      <GoldSeam points={[[-0.055, -0.9, 0.16], [-0.05, -0.35, 0.195], [-0.045, 0.2, 0.205], [-0.045, 0.78, 0.18]]} />
+      <GoldSeam points={[[0.055, -0.9, 0.16], [0.05, -0.35, 0.195], [0.045, 0.2, 0.205], [0.045, 0.78, 0.18]]} />
+      <GoldSeam points={[[-0.8, -0.88, 0.08], [-0.4, -0.91, 0.18], [0, -0.92, 0.2], [0.4, -0.91, 0.18], [0.8, -0.88, 0.08]]} />
+      {[0.18, -0.04, -0.26].map((y) => (
+        <mesh key={y} position={[0.04, y, 0.215]} castShadow>
+          <sphereGeometry args={[0.028, 12, 12]} />
           <meshStandardMaterial color="#a78a58" metalness={0.55} roughness={0.35} />
         </mesh>
       ))}
@@ -198,42 +344,68 @@ function Jacket({ color, layers }: { color: string; layers: DesignLayer[] }) {
 }
 
 function Tee({ color, layers }: { color: string; layers: DesignLayer[] }) {
+  const left = useMemo(() => panelGeometry({ topLeft: -0.74, topRight: -0.035, bottomLeft: -0.73, bottomRight: -0.05, height: 1.5, depth: 0.16, shoulderDrop: 0.03 }), []);
+  const right = useMemo(() => panelGeometry({ topLeft: 0.035, topRight: 0.74, bottomLeft: 0.05, bottomRight: 0.73, height: 1.5, depth: 0.16, shoulderDrop: 0.03 }), []);
+  const back = useMemo(() => panelGeometry({ topLeft: -0.74, topRight: 0.74, bottomLeft: -0.73, bottomRight: 0.73, height: 1.5, depth: 0.13, front: false, shoulderDrop: 0.03 }), []);
   return (
     <group>
-      <RoundedBox args={[1.52, 1.62, 0.28]} radius={0.1} smoothness={4} position={[0, 0.02, 0]} castShadow receiveShadow>
-        <meshStandardMaterial color={color} roughness={0.88} metalness={0} />
-        <SurfaceMotifs layers={layers} />
-      </RoundedBox>
-      <RoundedBox args={[0.46, 0.5, 0.27]} radius={0.08} smoothness={4} position={[-0.94, 0.55, 0]} rotation={[0, 0, 0.55]} castShadow>
-        <meshStandardMaterial color={color} roughness={0.9} metalness={0} />
-      </RoundedBox>
-      <RoundedBox args={[0.46, 0.5, 0.27]} radius={0.08} smoothness={4} position={[0.94, 0.55, 0]} rotation={[0, 0, -0.55]} castShadow>
-        <meshStandardMaterial color={color} roughness={0.9} metalness={0} />
-      </RoundedBox>
-      <mesh position={[0, 0.88, 0.15]} rotation={[0, 0, 0]} castShadow>
-        <torusGeometry args={[0.25, 0.045, 12, 36]} />
-        <meshStandardMaterial color={color} roughness={0.9} />
+      <mesh geometry={left} castShadow receiveShadow>
+        <ClothMaterial color={color} back />
+        <SurfaceMotifs layers={layers} side="left" />
       </mesh>
+      <mesh geometry={right} castShadow receiveShadow>
+        <ClothMaterial color={color} back />
+        <SurfaceMotifs layers={layers} side="right" />
+      </mesh>
+      <mesh geometry={back} castShadow receiveShadow>
+        <ClothMaterial color={color} back />
+      </mesh>
+      {[-1, 1].map((side) => (
+        <mesh key={side} position={[side * 0.83, 0.43, 0]} rotation={[0, 0, side * 0.72]} castShadow>
+          <cylinderGeometry args={[0.2, 0.23, 0.56, 24, 1, true]} />
+          <ClothMaterial color={color} back />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.76, 0.06]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+        <torusGeometry args={[0.255, 0.026, 10, 44]} />
+        <meshStandardMaterial color={color} roughness={0.88} />
+      </mesh>
+      <GoldSeam points={[[-0.72, -0.733, 0.1], [-0.36, -0.75, 0.17], [0, -0.755, 0.18], [0.36, -0.75, 0.17], [0.72, -0.733, 0.1]]} />
     </group>
   );
 }
 
 function Tote({ color, layers }: { color: string; layers: DesignLayer[] }) {
+  const handle = (side: number) => {
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(side * 0.35, 0.58, 0.04),
+      new THREE.Vector3(side * 0.42, 0.9, 0.04),
+      new THREE.Vector3(side * 0.34, 1.06, 0.04),
+      new THREE.Vector3(side * 0.25, 1.07, 0.04),
+      new THREE.Vector3(side * 0.22, 0.88, 0.04),
+      new THREE.Vector3(side * 0.22, 0.58, 0.04),
+    ]);
+    return new THREE.TubeGeometry(curve, 24, 0.038, 8, false);
+  };
+  const handles = useMemo(() => [handle(-1), handle(1)], []);
   return (
     <group>
-      <RoundedBox args={[1.48, 1.55, 0.38]} radius={0.06} smoothness={4} position={[0, -0.18, 0]} castShadow receiveShadow>
-        <meshStandardMaterial color={color} roughness={0.86} metalness={0.01} />
+      <RoundedBox args={[1.5, 1.5, 0.38]} radius={0.05} smoothness={4} position={[0, -0.2, 0]} castShadow receiveShadow>
+        <ClothMaterial color={color} back />
         <SurfaceMotifs layers={layers} />
       </RoundedBox>
-      {[-0.36, 0.36].map((x) => (
-        <mesh key={x} position={[x, 0.78, 0]} rotation={[0, 0, 0]} castShadow>
-          <torusGeometry args={[0.34, 0.055, 12, 40, Math.PI]} />
-          <meshStandardMaterial color={color} roughness={0.8} />
+      {handles.map((geometry, index) => (
+        <mesh key={index} geometry={geometry} castShadow>
+          <ClothMaterial color={color} back />
         </mesh>
       ))}
-      <mesh position={[0, -0.88, 0.2]} castShadow>
-        <boxGeometry args={[1.2, 0.025, 0.02]} />
+      <mesh position={[0, 0.5, 0.2]} castShadow>
+        <boxGeometry args={[1.42, 0.035, 0.02]} />
         <meshStandardMaterial color="#7a302a" roughness={0.7} />
+      </mesh>
+      <mesh position={[0, -0.92, 0.2]} castShadow>
+        <boxGeometry args={[1.3, 0.025, 0.02]} />
+        <meshStandardMaterial color="#c69a57" roughness={0.6} metalness={0.12} />
       </mesh>
     </group>
   );

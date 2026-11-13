@@ -99,6 +99,7 @@ function Overview() {
 
 function Verifications() {
   const queue = useQuery(api.admin.verificationQueue);
+  const passportQueue = useQuery(api.passport.reviewQueue);
   const decide = useMutation(api.admin.decideVerification);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
@@ -132,6 +133,31 @@ function Verifications() {
           ))}
         </div>
       )}
+
+      <section className="mt-8 border-t border-maroon/10 pt-6">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <p className="label-caps text-[8px] text-teal">KalaPassport verification</p>
+            <h2 className="mt-1 font-display text-2xl font-semibold text-maroon">Craft evidence reviews</h2>
+            <p className="mt-1 max-w-[64ch] text-[10px] leading-relaxed text-ink/50">Open a passport to inspect private evidence and record a named decision. A badge is only issued after a completed review, with explicit scope and limitations.</p>
+          </div>
+        </div>
+        {passportQueue === undefined ? <div className="mt-3 h-24 animate-pulse rounded-xl bg-card" /> : passportQueue.length === 0 ? (
+          <p className="mt-3 rounded-xl border border-dashed border-maroon/20 p-5 text-xs text-ink/50">No passport evidence has been submitted yet.</p>
+        ) : (
+          <div className="mt-3 space-y-2">
+            {passportQueue.map((passport) => (
+              <Link key={passport._id} to={`/projects/${passport.projectId}/passport`} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-maroon/12 bg-card p-3 transition hover:border-maroon/30">
+                <div className="min-w-0">
+                  <p className="truncate text-[11px] font-semibold text-maroon">{passport.projectTitle}</p>
+                  <p className="mt-0.5 text-[9px] text-ink/45">{passport.reviewerName ?? "No reviewer yet"} · submitted {formatDate(passport.submittedAt)}{passport.demoLabel ? " · sample record" : ""}</p>
+                </div>
+                <span className="rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[8px] font-semibold uppercase tracking-[0.08em] text-[#74572c]">{passport.reviewStatus.replace(/_/g, " ")}</span>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

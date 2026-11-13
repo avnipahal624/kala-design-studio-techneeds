@@ -1009,7 +1009,7 @@ export default function Studio() {
 
         {/* right brief */}
         <aside className="hidden w-[300px] shrink-0 flex-col border-l border-maroon/15 bg-card xl:flex">
-          <StudioBrief canvas={canvas} craftId={design.craftId} title={design.title} />
+          <StudioBrief canvas={canvas} craftId={design.craftId} title={design.title} designId={design._id} />
         </aside>
       </div>
 
@@ -1040,7 +1040,7 @@ export default function Studio() {
       <Sheet open={briefOpen} onOpenChange={setBriefOpen}>
         <SheetContent side="right" className="w-[min(340px,92vw)] border-maroon/20 bg-card p-0">
           <SheetTitle className="sr-only">Production read-out</SheetTitle>
-          <StudioBrief canvas={canvas} craftId={design.craftId} title={design.title} />
+          <StudioBrief canvas={canvas} craftId={design.craftId} title={design.title} designId={design._id} />
         </SheetContent>
       </Sheet>
 

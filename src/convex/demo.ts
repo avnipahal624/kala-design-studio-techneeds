@@ -3,6 +3,7 @@ import type { MutationCtx } from "./_generated/server";
 import { internalMutation, mutation, query } from "./_generated/server";
 import { requireAdmin } from "./lib/access";
 import { scoreArtisan } from "./lib/matching";
+import { allocatePaise } from "./lib/payoutLedger";
 import { publicArtisan } from "./lib/serialise";
 import {
   DEMO_ARTISANS,
@@ -26,6 +27,7 @@ type DemoCounts = {
   reviews: number;
   plans: number;
   passports: number;
+  payoutPlans: number;
 };
 
 async function record(
@@ -105,6 +107,7 @@ export async function seedDemo(ctx: MutationCtx) {
       craftHeadline: artisan.craft,
       city: artisan.city,
       serviceRegion: artisan.region,
+      state: artisan.region === "Delhi NCR" ? "Delhi" : artisan.region === "Kashmir Valley" ? "Jammu & Kashmir" : artisan.region,
       mode: "individual",
       yearsExperience: 6 + (i % 14),
       intro: `${artisan.name} is a ${artisan.city}-based craftsperson working with ${artisan.materials.join(
@@ -460,19 +463,154 @@ export async function seedDemo(ctx: MutationCtx) {
     await record(ctx, "review", artisanReviewId, `${brief.title} — artisan review`);
   }
 
+  const reviewStatuses = ["verified", "evidence_submitted", "under_review", "rejected", "revoked"] as const;
   for (let i = 0; i < 5; i++) {
     const token = `demo-passport-${i + 1}`;
     passportTokens.push(token);
+    const brief = DEMO_REQUESTS[i];
+    const status = reviewStatuses[i];
+    const evidenceAt = now - (5 - i) * DAY;
+    const reviewedAt = now - (4 - i) * DAY;
+    const reviewerId = customerIds[0];
     const passportId = await ctx.db.insert("kalaPassports", {
       projectId: completedProjectIds[i],
-      customerId: customerIds[DEMO_REQUESTS[i].customer],
+      customerId: customerIds[brief.customer],
       shareToken: token,
-      publicEnabled: true,
+      publicEnabled: i !== 4,
+      reviewStatus: status,
+      craftTradition: brief.craft,
+      heritageRegion: DEMO_ARTISANS[brief.artisan].region,
+      productionLocation: brief.city,
+      materialsOrigin: brief.materials,
+      publicEvidenceSummary: "Sample evidence summary: dated process notes, material references and the project's KalaProof milestones were submitted for this fictional demo record.",
+      evidenceFiles: [],
+      evidenceSubmittedAt: evidenceAt,
+      reviewedBy: status === "verified" || status === "under_review" || status === "rejected" || status === "revoked" ? reviewerId : undefined,
+      reviewerName: status === "evidence_submitted" ? undefined : "Demo reviewer (sample)",
+      reviewScope: status === "evidence_submitted" ? undefined : "Sample review of the submitted craft notes and KalaProof timeline",
+      reviewedAt: status === "verified" || status === "rejected" || status === "revoked" ? reviewedAt : undefined,
+      reviewNote: status === "rejected" ? "Sample decision: the submitted evidence did not establish the claimed material or production process." : status === "under_review" ? "Sample reviewer note. The case is being checked." : status === "verified" || status === "revoked" ? "Sample decision: the submitted notes and dated milestones were consistent with the recorded process." : undefined,
+      verificationLimitations: status === "evidence_submitted" || status === "under_review" ? undefined : "Fictional demo review. This is not an authentication of a real object and no government, GI or independent body endorsed it.",
+      revokedAt: status === "revoked" ? now - 2 * DAY : undefined,
+      revocationReason: status === "revoked" ? "Sample revocation after a demonstration of the review workflow." : undefined,
+      shareProductionLocation: i === 0,
+      shareArtisanNames: i !== 1,
       demoLabel: DEMO_LABEL,
       createdAt: now - (6 - i) * DAY,
       updatedAt: now - (6 - i) * DAY,
     });
     await record(ctx, "passport", passportId, token);
+
+    const history: { action: "evidence_submitted" | "review_started" | "verified" | "rejected" | "revoked"; note: string; at: number }[] = [
+      { action: "evidence_submitted", note: "Sample craft notes and KalaProof references submitted.", at: evidenceAt },
+    ];
+    if (status !== "evidence_submitted") history.push({ action: "review_started", note: "Sample reviewer opened the evidence record.", at: evidenceAt + DAY / 2 });
+    if (status === "verified" || status === "revoked") history.push({ action: "verified", note: "Sample review completed with stated limitations.", at: reviewedAt });
+    if (status === "rejected") history.push({ action: "rejected", note: "Sample evidence review declined.", at: reviewedAt });
+    if (status === "revoked") history.push({ action: "revoked", note: "Sample verification revoked; public sharing stopped.", at: now - 2 * DAY });
+    for (const entry of history) {
+      const reviewId = await ctx.db.insert("passportReviews", {
+        passportId,
+        projectId: completedProjectIds[i],
+        action: entry.action,
+        actorId: reviewerId,
+        actorName: entry.action === "evidence_submitted" ? "Sample customer" : "Demo reviewer (sample)",
+        actorRole: entry.action === "evidence_submitted" ? "customer" : "reviewer",
+        note: entry.note,
+        scope: "Demo verification workflow",
+        createdAt: entry.at,
+      });
+      await record(ctx, "passportReview", reviewId);
+    }
+  }
+
+  let payoutPlanCount = 0;
+  const payoutProject = await ctx.db.get(projectIds[0]);
+  if (payoutProject) {
+    const grossPaise = Math.round(payoutProject.amountInr * 100);
+    const platformFeePaise = Math.round(payoutProject.platformFeeInr * 100);
+    const distributablePaise = Math.round(payoutProject.netPayoutInr * 100);
+    const collaboratorIds = [payoutProject.artisanId];
+    for (const candidate of [artisanIds[6], artisanIds[9], artisanIds[2], artisanIds[4]]) {
+      if (!collaboratorIds.includes(candidate)) collaboratorIds.push(candidate);
+      if (collaboratorIds.length === 3) break;
+    }
+    const weights = collaboratorIds.map((_, index) => [55, 30, 15][index] ?? 10);
+    const shares = allocatePaise(distributablePaise, collaboratorIds.map((artisanId, index) => ({ key: artisanId, weightPaise: weights[index] })));
+    const shareByArtisan = new Map(shares.map((share) => [share.key, share.amountPaise]));
+    const planId = await ctx.db.insert("payoutPlans", {
+      projectId: payoutProject._id,
+      requestId: payoutProject.requestId,
+      customerId: payoutProject.customerId,
+      currency: "INR",
+      mode: "sandbox",
+      grossPaise,
+      platformFeePaise,
+      processorFeePaise: 0,
+      taxPaise: 0,
+      refundedPaise: 0,
+      heldPaise: 0,
+      distributablePaise,
+      status: "simulated",
+      idempotencyKey: "demo-sandbox-payout-plan-1",
+      feeNote: "Fictional sample: no processor fee or tax is modelled because no provider transfer occurs. Platform fee is taken from the accepted quote.",
+      demoLabel: DEMO_LABEL,
+      acceptedAt: now - 3 * DAY,
+      simulatedAt: now - 2 * DAY,
+      createdAt: now - 4 * DAY,
+      updatedAt: now - 2 * DAY,
+    });
+    await record(ctx, "payoutPlan", planId, "sandbox split");
+    payoutPlanCount += 1;
+    const balanceByArtisan = new Map<string, number>();
+    for (let index = 0; index < collaboratorIds.length; index++) {
+      const artisanId = collaboratorIds[index];
+      const netPaise = shareByArtisan.get(artisanId) ?? 0;
+      const allocationId = await ctx.db.insert("payoutAllocations", {
+        planId,
+        projectId: payoutProject._id,
+        artisanId,
+        label: index === 0 ? "Lead artisan allocation" : index === 1 ? "Embroidery collaborator allocation" : "Finishing collaborator allocation",
+        weightPaise: weights[index],
+        netPaise,
+        status: "available",
+        demoLabel: DEMO_LABEL,
+        createdAt: now - 4 * DAY,
+        updatedAt: now - 2 * DAY,
+      });
+      await record(ctx, "payoutAllocation", allocationId, `share ${index + 1}`);
+      for (const entry of [
+        { bucket: "held" as const, kind: "allocation_hold" as const, direction: "credit" as const, amountPaise: netPaise, note: "Sample sandbox hold" },
+        { bucket: "held" as const, kind: "hold_release" as const, direction: "debit" as const, amountPaise: netPaise, note: "Sample hold released" },
+        { bucket: "available" as const, kind: "available_credit" as const, direction: "credit" as const, amountPaise: netPaise, note: "Sample simulated payout; no money moved" },
+      ]) {
+        const ledgerId = await ctx.db.insert("payoutLedger", {
+          planId,
+          allocationId,
+          projectId: payoutProject._id,
+          artisanId,
+          bucket: entry.bucket,
+          kind: entry.kind,
+          direction: entry.direction,
+          amountPaise: entry.amountPaise,
+          idempotencyKey: `demo:${planId}:${allocationId}:${entry.kind}`,
+          note: entry.note,
+          createdAt: now - 2 * DAY,
+        });
+        await record(ctx, "payoutLedger", ledgerId, entry.kind);
+      }
+      balanceByArtisan.set(artisanId, (balanceByArtisan.get(artisanId) ?? 0) + netPaise);
+    }
+    for (const [artisanId, availablePaise] of balanceByArtisan) {
+      const balanceId = await ctx.db.insert("payoutBalances", {
+        artisanId: artisanId as Id<"users">,
+        availablePaise,
+        heldPaise: 0,
+        paidPaise: 0,
+        updatedAt: now - 2 * DAY,
+      });
+      await record(ctx, "payoutBalance", balanceId);
+    }
   }
 
   for (let i = 0; i < projectIds.length; i++) {
@@ -725,6 +863,7 @@ export async function seedDemo(ctx: MutationCtx) {
     reviews: 20,
     plans: planSpecs.length,
     passports: passportTokens.length,
+    payoutPlans: payoutPlanCount,
   };
   return { seeded: true, seedKey: DEMO_SEED_KEY, counts, profileIds };
 }
@@ -736,9 +875,9 @@ export async function resetDemo(ctx: MutationCtx) {
     .take(2000);
 
   const order = [
-    "proof", "message", "conversation", "notification", "review", "passport",
-    "paymentTransaction", "paymentOrder", "payout", "collabTask", "collabPlan",
-    "project", "quote", "request", "portfolio", "feasibility", "artisanProfile",
+    "proof", "message", "conversation", "notification", "review", "passportReview", "passport",
+    "paymentTransaction", "paymentOrder", "payoutLedger", "payoutAllocation", "payoutBalance", "payoutPlan",
+    "payout", "collabTask", "collabPlan", "project", "quote", "request", "portfolio", "feasibility", "artisanProfile",
     "customerProfile", "artisanUser", "customerUser",
   ];
 
@@ -760,6 +899,9 @@ export async function resetDemo(ctx: MutationCtx) {
         case "review":
           await ctx.db.delete(row.entityId as Id<"reviews">);
           break;
+        case "passportReview":
+          await ctx.db.delete(row.entityId as Id<"passportReviews">);
+          break;
         case "passport":
           await ctx.db.delete(row.entityId as Id<"kalaPassports">);
           break;
@@ -768,6 +910,18 @@ export async function resetDemo(ctx: MutationCtx) {
           break;
         case "paymentOrder":
           await ctx.db.delete(row.entityId as Id<"paymentOrders">);
+          break;
+        case "payoutLedger":
+          await ctx.db.delete(row.entityId as Id<"payoutLedger">);
+          break;
+        case "payoutAllocation":
+          await ctx.db.delete(row.entityId as Id<"payoutAllocations">);
+          break;
+        case "payoutBalance":
+          await ctx.db.delete(row.entityId as Id<"payoutBalances">);
+          break;
+        case "payoutPlan":
+          await ctx.db.delete(row.entityId as Id<"payoutPlans">);
           break;
         case "payout":
           await ctx.db.delete(row.entityId as Id<"payouts">);
@@ -921,7 +1075,44 @@ export const showcase = query({
         token: passport.shareToken,
         publicEnabled: passport.publicEnabled,
         projectTitle: project?.title ?? "Completed demo project",
+        reviewStatus: passport.reviewStatus ?? "unreviewed",
+        reviewerName: passport.reviewerName ?? null,
       });
+    }
+
+    const payoutRow = rows.find((entry) => entry.entityType === "payoutPlan");
+    let sandboxPayout = null;
+    if (payoutRow) {
+      const plan = await ctx.db.get(payoutRow.entityId as Id<"payoutPlans">);
+      if (plan) {
+        const allocations = await ctx.db
+          .query("payoutAllocations")
+          .withIndex("by_plan", (q) => q.eq("planId", plan._id))
+          .take(10);
+        const rowsWithNames = await Promise.all(
+          allocations.map(async (allocation) => {
+            const profile = await ctx.db
+              .query("artisanProfiles")
+              .withIndex("by_user", (q) => q.eq("userId", allocation.artisanId))
+              .unique();
+            return {
+              artisanName: profile?.displayName ?? "Artisan",
+              label: allocation.label,
+              netPaise: allocation.netPaise,
+              status: allocation.status,
+            };
+          }),
+        );
+        sandboxPayout = {
+          status: plan.status,
+          mode: plan.mode,
+          grossPaise: plan.grossPaise,
+          platformFeePaise: plan.platformFeePaise,
+          distributablePaise: plan.distributablePaise,
+          feeNote: plan.feeNote,
+          allocations: rowsWithNames,
+        };
+      }
     }
 
     const makerRow = rows.find((entry) => entry.entityType === "artisanProfile");
@@ -1014,6 +1205,7 @@ export const showcase = query({
       artisans: artisans.filter((artisan) => artisan !== null),
       plans,
       passports,
+      sandboxPayout,
       makerWorkspace,
     };
   },

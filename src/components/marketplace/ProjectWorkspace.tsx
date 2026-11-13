@@ -28,6 +28,7 @@ import { StatusPill } from "./Bits";
 import { UploadImages, type UploadedImage } from "./UploadImages";
 import { QuoteBreakdown } from "./QuoteBreakdown";
 import { KalaProofTimeline } from "./KalaProofTimeline";
+import { SandboxPayoutLedger } from "./SandboxPayoutLedger";
 
 declare global {
   interface Window {
@@ -685,6 +686,8 @@ export function ProjectWorkspace({ projectId }: { projectId: Id<"projects"> }) {
           )}
         </div>
       </div>
+
+      <SandboxPayoutLedger projectId={projectId} />
     </div>
   );
 }

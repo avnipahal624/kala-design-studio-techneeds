@@ -324,6 +324,49 @@ export default function DemoLive() {
             </div>
           </section>
 
+          {data?.sandboxPayout && (
+            <section className="overflow-hidden rounded-3xl border border-maroon/15 bg-card">
+              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-maroon/10 bg-[linear-gradient(120deg,#fbf5e8,#f0e1ca)] p-5 sm:p-6">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gold">Payout allocation · sandbox ledger</p>
+                  <h2 className="mt-1 font-display text-3xl font-semibold text-maroon">A split you can inspect, not a promise of money.</h2>
+                  <p className="mt-2 max-w-[70ch] text-sm leading-relaxed text-ink/55">
+                    Integer-paise arithmetic, explicit platform fee and a reconciled artisan split. The seeded plan is simulated: no route payout or bank transfer occurred.
+                  </p>
+                </div>
+                <Chip tone="gold"><Wallet className="size-3" /> Sandbox · no money moved</Chip>
+              </div>
+              <div className="grid gap-4 p-5 sm:p-6 lg:grid-cols-[0.8fr_1.4fr]">
+                <div className="grid grid-cols-3 gap-2 lg:grid-cols-1">
+                  {[
+                    ["Order gross", data.sandboxPayout.grossPaise],
+                    ["Platform fee", data.sandboxPayout.platformFeePaise],
+                    ["Distributable", data.sandboxPayout.distributablePaise],
+                  ].map(([label, value], index) => (
+                    <div key={String(label)} className={`rounded-xl border p-3 ${index === 2 ? "border-maroon/25 bg-maroon text-ivory" : "border-maroon/10 bg-[#fbf5e8]"}`}>
+                      <p className={`text-[8px] uppercase tracking-[0.1em] ${index === 2 ? "text-ivory/55" : "text-ink/35"}`}>{label}</p>
+                      <p className={`mt-1 font-display text-xl font-semibold ${index === 2 ? "text-ivory" : "text-maroon"}`}>{formatInr((value as number) / 100)}</p>
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  {data.sandboxPayout.allocations.map((allocation) => (
+                    <div key={`${allocation.artisanName}-${allocation.label}`} className="mb-2.5 last:mb-0">
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <p className="text-xs font-semibold text-maroon">{allocation.artisanName} <span className="font-normal text-ink/40">· {allocation.label}</span></p>
+                        <p className="font-mono text-xs font-semibold text-ink/65">{formatInr(allocation.netPaise / 100)}</p>
+                      </div>
+                      <div className="mt-1 h-2 overflow-hidden rounded-full bg-maroon/10">
+                        <span className="block h-full rounded-full bg-[linear-gradient(90deg,#b5502f,#d8a65b)]" style={{ width: `${Math.max(4, (allocation.netPaise / data.sandboxPayout!.distributablePaise) * 100)}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                  <p className="mt-3 text-[9px] leading-relaxed text-ink/40">{data.sandboxPayout.feeNote}</p>
+                </div>
+              </div>
+            </section>
+          )}
+
           <section className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
             <div className="rounded-3xl border border-maroon/15 bg-card p-6">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gold">KalaPassport · public demo records</p>
@@ -334,19 +377,27 @@ export default function DemoLive() {
                 production timeline.
               </p>
               <div className="mt-5 space-y-2">
-                {data?.passports.map((passport) => (
-                  <Link
-                    key={passport.token}
-                    to={`/passport/${passport.token}`}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-maroon/12 bg-parchment/60 px-4 py-3 transition hover:border-maroon/30 hover:bg-parchment"
-                  >
-                    <span>
-                      <span className="block text-sm font-semibold text-maroon">{passport.projectTitle}</span>
-                      <span className="mt-0.5 flex items-center gap-1 text-[10px] text-ink/45"><BadgeCheck className="size-3" /> Sample passport · public link enabled</span>
-                    </span>
-                    <ArrowRight className="size-4 shrink-0 text-maroon/50" />
-                  </Link>
-                ))}
+                {data?.passports.map((passport) => {
+                  const status = passport.reviewStatus === "verified" ? `Sample review by ${passport.reviewerName ?? "a demo reviewer"}` : passport.reviewStatus === "revoked" ? "Sample verification revoked" : passport.reviewStatus === "rejected" ? "Sample review declined" : passport.reviewStatus === "under_review" ? "Sample review in progress" : "Sample evidence submitted";
+                  const content = (
+                    <>
+                      <span>
+                        <span className="block text-sm font-semibold text-maroon">{passport.projectTitle}</span>
+                        <span className="mt-0.5 flex flex-wrap items-center gap-1 text-[10px] text-ink/45"><BadgeCheck className="size-3" /> {status} · {passport.publicEnabled ? "public link enabled" : "sharing revoked"}</span>
+                      </span>
+                      {passport.publicEnabled ? <ArrowRight className="size-4 shrink-0 text-maroon/50" /> : <span className="rounded-full border border-vermilion/20 px-2 py-0.5 text-[8px] font-semibold uppercase text-vermilion">No public link</span>}
+                    </>
+                  );
+                  return passport.publicEnabled ? (
+                    <Link key={passport.token} to={`/passport/${passport.token}`} className="flex items-center justify-between gap-3 rounded-xl border border-maroon/12 bg-parchment/60 px-4 py-3 transition hover:border-maroon/30 hover:bg-parchment">
+                      {content}
+                    </Link>
+                  ) : (
+                    <div key={passport.token} className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-maroon/15 bg-parchment/40 px-4 py-3 opacity-80">
+                      {content}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

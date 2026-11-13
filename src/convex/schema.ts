@@ -255,6 +255,7 @@ const schema = defineSchema(
       craftHeadline: v.string(),
       city: v.string(),
       serviceRegion: v.string(),
+      state: v.optional(v.string()),
       mode: v.union(v.literal("individual"), v.literal("collective")),
       yearsExperience: v.number(),
       intro: v.string(),
@@ -386,6 +387,7 @@ const schema = defineSchema(
       briefSummary: v.optional(v.string()),
       missingInfo: v.array(v.string()),
       analysis: v.optional(v.any()),
+      designId: v.optional(v.id("designs")),
       demoLabel: v.optional(v.string()),
       status: requestStatusValidator,
       publishedAt: v.number(),
@@ -568,6 +570,14 @@ const schema = defineSchema(
       deliveredAt: v.optional(v.number()),
       completedAt: v.optional(v.number()),
       cancellationReason: v.optional(v.string()),
+      shipment: v.optional(v.object({
+        carrier: v.string(),
+        trackingNumber: v.string(),
+        trackingUrl: v.optional(v.string()),
+        note: v.optional(v.string()),
+        recordedAt: v.number(),
+        recordedBy: v.id("users"),
+      })),
       demoLabel: v.optional(v.string()),
       createdAt: v.number(),
       updatedAt: v.number(),
@@ -584,6 +594,31 @@ const schema = defineSchema(
       customerId: v.id("users"),
       shareToken: v.string(),
       publicEnabled: v.boolean(),
+      reviewStatus: v.optional(v.union(
+        v.literal("unreviewed"),
+        v.literal("evidence_submitted"),
+        v.literal("under_review"),
+        v.literal("verified"),
+        v.literal("rejected"),
+        v.literal("revoked"),
+      )),
+      craftTradition: v.optional(v.string()),
+      heritageRegion: v.optional(v.string()),
+      productionLocation: v.optional(v.string()),
+      materialsOrigin: v.optional(v.string()),
+      publicEvidenceSummary: v.optional(v.string()),
+      evidenceFiles: v.optional(v.array(fileRefValidator)),
+      evidenceSubmittedAt: v.optional(v.number()),
+      reviewedBy: v.optional(v.id("users")),
+      reviewerName: v.optional(v.string()),
+      reviewScope: v.optional(v.string()),
+      reviewedAt: v.optional(v.number()),
+      reviewNote: v.optional(v.string()),
+      verificationLimitations: v.optional(v.string()),
+      revokedAt: v.optional(v.number()),
+      revocationReason: v.optional(v.string()),
+      shareProductionLocation: v.optional(v.boolean()),
+      shareArtisanNames: v.optional(v.boolean()),
       demoLabel: v.optional(v.string()),
       createdAt: v.number(),
       updatedAt: v.number(),
@@ -591,6 +626,26 @@ const schema = defineSchema(
       .index("by_project", ["projectId"])
       .index("by_token", ["shareToken"])
       .index("by_customer", ["customerId", "createdAt"]),
+
+    passportReviews: defineTable({
+      passportId: v.id("kalaPassports"),
+      projectId: v.id("projects"),
+      action: v.union(
+        v.literal("evidence_submitted"),
+        v.literal("review_started"),
+        v.literal("verified"),
+        v.literal("rejected"),
+        v.literal("revoked"),
+        v.literal("sharing_changed"),
+      ),
+      actorId: v.id("users"),
+      actorName: v.string(),
+      actorRole: v.string(),
+      note: v.string(),
+      scope: v.optional(v.string()),
+      createdAt: v.number(),
+    })
+      .index("by_passport", ["passportId", "createdAt"]),
 
     designConcepts: defineTable({
       projectId: v.id("projects"),
@@ -725,6 +780,94 @@ const schema = defineSchema(
       .index("by_artisan", ["artisanId"])
       .index("by_project", ["projectId"])
       .index("by_status", ["status"]),
+
+    /* Sandbox payout ledger — integer paise, never a live transfer. */
+    payoutPlans: defineTable({
+      projectId: v.id("projects"),
+      requestId: v.id("customerRequests"),
+      customerId: v.id("users"),
+      collaborationPlanId: v.optional(v.id("collaborationPlans")),
+      currency: v.literal("INR"),
+      mode: v.literal("sandbox"),
+      grossPaise: v.number(),
+      platformFeePaise: v.number(),
+      processorFeePaise: v.number(),
+      taxPaise: v.number(),
+      refundedPaise: v.number(),
+      heldPaise: v.number(),
+      distributablePaise: v.number(),
+      status: v.union(
+        v.literal("proposed"),
+        v.literal("accepted"),
+        v.literal("simulated"),
+        v.literal("reversed"),
+        v.literal("cancelled"),
+      ),
+      idempotencyKey: v.string(),
+      feeNote: v.string(),
+      acceptedAt: v.optional(v.number()),
+      simulatedAt: v.optional(v.number()),
+      demoLabel: v.optional(v.string()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_project", ["projectId", "createdAt"])
+      .index("by_customer", ["customerId", "createdAt"])
+      .index("by_idempotency", ["idempotencyKey"]),
+
+    payoutAllocations: defineTable({
+      planId: v.id("payoutPlans"),
+      projectId: v.id("projects"),
+      artisanId: v.id("users"),
+      taskId: v.optional(v.id("collaborationTasks")),
+      label: v.string(),
+      weightPaise: v.number(),
+      netPaise: v.number(),
+      status: v.union(
+        v.literal("proposed"),
+        v.literal("held"),
+        v.literal("available"),
+        v.literal("reversed"),
+      ),
+      holdReason: v.optional(v.string()),
+      demoLabel: v.optional(v.string()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_plan", ["planId"])
+      .index("by_artisan", ["artisanId", "createdAt"])
+      .index("by_project", ["projectId"]),
+
+    payoutLedger: defineTable({
+      planId: v.id("payoutPlans"),
+      allocationId: v.optional(v.id("payoutAllocations")),
+      projectId: v.id("projects"),
+      artisanId: v.optional(v.id("users")),
+      bucket: v.union(v.literal("available"), v.literal("held"), v.literal("paid")),
+      kind: v.union(
+        v.literal("allocation_hold"),
+        v.literal("hold_release"),
+        v.literal("available_credit"),
+        v.literal("refund_reversal"),
+        v.literal("manual_hold"),
+      ),
+      direction: v.union(v.literal("credit"), v.literal("debit")),
+      amountPaise: v.number(),
+      idempotencyKey: v.string(),
+      note: v.string(),
+      createdAt: v.number(),
+    })
+      .index("by_plan", ["planId", "createdAt"])
+      .index("by_artisan", ["artisanId", "createdAt"])
+      .index("by_idempotency", ["idempotencyKey"]),
+
+    payoutBalances: defineTable({
+      artisanId: v.id("users"),
+      availablePaise: v.number(),
+      heldPaise: v.number(),
+      paidPaise: v.number(),
+      updatedAt: v.number(),
+    }).index("by_artisan", ["artisanId"]),
 
     /* ---------------------------------------------------------------- */
     /* Messaging                                                         */

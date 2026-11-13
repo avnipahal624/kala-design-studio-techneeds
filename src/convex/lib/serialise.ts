@@ -12,6 +12,7 @@ export function publicArtisan(profile: Doc<"artisanProfiles">) {
     headline: profile.craftHeadline,
     city: profile.city,
     serviceRegion: profile.serviceRegion,
+    state: profile.state ?? null,
     mode: profile.mode,
     yearsExperience: profile.yearsExperience,
     intro: profile.intro,

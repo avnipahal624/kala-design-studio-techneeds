@@ -3,7 +3,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { ProjectWorkspace } from "@/components/marketplace/ProjectWorkspace";
 import { QuoteBreakdown } from "@/components/marketplace/QuoteBreakdown";
 import { assessCraftFeasibility, FeasibilityPanel } from "@/components/studio/FeasibilityPanel";
-import { CRAFTS } from "@/lib/crafts";
+import { CRAFTS, PRODUCT_BY_ID } from "@/lib/crafts";
 import { StatusPill, StatCard } from "@/components/marketplace/Bits";
 import { UploadImages, type UploadedImage } from "@/components/marketplace/UploadImages";
 import { ArtisanCard } from "@/components/marketplace/ArtisanCard";
@@ -23,7 +23,7 @@ import {
   ChevronRight, FileText, Handshake, ImagePlus, IndianRupee, Loader2,
   Package, Palette, Plus, ReceiptText, ShieldCheck, Sparkles, Users, Wallet,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
@@ -449,6 +449,9 @@ export function CreateRequest() {
   const navigate = useNavigate();
   const create = useMutation(api.requests.create);
   const analyze = useAction(api.kalavision.analyzeDraft);
+  const designIdParam = params.get("designId");
+  const savedDesign = useQuery(api.designs.get, designIdParam ? { designId: designIdParam as Id<"designs"> } : "skip");
+  const loadedDesign = useRef(false);
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ ...EMPTY_FORM, category: params.get("category") ?? EMPTY_FORM.category, craftPreference: params.get("craft") ?? "" });
   const [images, setImages] = useState<UploadedImage[]>([]);
@@ -460,6 +463,29 @@ export function CreateRequest() {
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
+
+  useEffect(() => {
+    if (!savedDesign || loadedDesign.current) return;
+    loadedDesign.current = true;
+    const category = savedDesign.productType === "tote" || savedDesign.productType === "handbags"
+      ? "Bags"
+      : savedDesign.productType === "footwear"
+        ? "Footwear"
+        : savedDesign.productType === "home-decor"
+          ? "Home Decor"
+          : "Clothing";
+    const productLabel = PRODUCT_BY_ID[savedDesign.productType]?.label ?? savedDesign.productType;
+    setForm((prev) => ({
+      ...prev,
+      title: prev.title || `${productLabel} from my Studio design`,
+      category,
+      productDescription: prev.productDescription || `Base product for the saved Studio design “${savedDesign.title}”. Confirm the exact product, measurements and fabric with the artisan.`,
+      description: prev.description || `This brief follows my saved Studio design. Please review the attached reference and the saved design details before quoting.`,
+      craftPreference: prev.craftPreference || savedDesign.craftId || "",
+      colours: prev.colours || [savedDesign.canvas.fabricColor, ...savedDesign.canvas.layers.map((layer) => layer.color)].slice(0, 4).join(", "),
+      materialsKnown: prev.materialsKnown || "To confirm with the artisan",
+    }));
+  }, [savedDesign]);
 
   function loadSneakerExample() {
     setForm((prev) => ({
@@ -560,6 +586,7 @@ export function CreateRequest() {
         fulfilment: form.fulfilment,
         customerSuppliesProduct: form.customerSuppliesProduct,
         images: images.map((image) => ({ storageId: image.storageId, name: image.name, contentType: image.contentType, size: image.size })),
+        designId: savedDesign?._id,
       });
       toast.success(`Brief published — ${result.eligibleMatches} eligible artisan${result.eligibleMatches === 1 ? "" : "s"} matched.`);
       navigate(`/customer/requests/${result.requestId}`);
@@ -573,6 +600,19 @@ export function CreateRequest() {
   return (
     <PortalShell role="customer" title="New customisation brief" hindi="नई कल्पना" subtitle="One idea, clearly told. You can invite artisans after it goes live.">
       <div className="mx-auto max-w-[900px]">
+        {savedDesign && (
+          <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-gold/35 bg-[#fdf6e6] p-3">
+            <div className="w-20 overflow-hidden rounded-xl border border-maroon/15 bg-card">
+              <GarmentArt canvas={savedDesign.canvas} className="h-auto w-full" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#8a6a31]">Continuing from the Design Studio</p>
+              <p className="mt-0.5 font-display text-lg font-semibold text-maroon">{savedDesign.title}</p>
+              <p className="text-[10px] text-ink/55">{PRODUCT_BY_ID[savedDesign.productType]?.label ?? savedDesign.productType} · {savedDesign.canvas.layers.length} layers · saved version {savedDesign.versionCount}</p>
+            </div>
+            <p className="max-w-[34ch] text-[10px] leading-relaxed text-ink/55">The design reference is attached to this brief. Upload a base-product photo to continue; the artisan will confirm feasibility before quoting.</p>
+          </div>
+        )}
         <ol className="mb-4 grid grid-cols-3 gap-1.5 sm:grid-cols-6">
           {["Product", "The story", "Direction", "Budget & timing", "KalaVision", "Review"].map((label, index) => (
             <li key={label} className={`rounded-lg border px-2 py-2 text-center ${step === index + 1 ? "border-maroon bg-maroon text-ivory" : step > index + 1 ? "border-emerald/30 bg-emerald/[0.06] text-emerald" : "border-maroon/15 bg-card text-ink/45"}`}>

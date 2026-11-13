@@ -558,6 +558,7 @@ export const addShipping = mutation({
     projectId: v.id("projects"),
     carrier: v.string(),
     trackingNumber: v.string(),
+    trackingUrl: v.optional(v.string()),
     note: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -570,6 +571,21 @@ export const addShipping = mutation({
     if (args.carrier.trim().length < 2 || args.trackingNumber.trim().length < 3) {
       throw new Error("INVALID: add the carrier and tracking number.");
     }
+    const trackingUrl = args.trackingUrl?.trim();
+    if (trackingUrl && !/^https?:\/\/[^\s]+$/i.test(trackingUrl)) {
+      throw new Error("INVALID: the carrier link must start with http:// or https://.");
+    }
+    await ctx.db.patch(args.projectId, {
+      shipment: {
+        carrier: args.carrier.trim().slice(0, 80),
+        trackingNumber: args.trackingNumber.trim().slice(0, 100),
+        trackingUrl: trackingUrl?.slice(0, 500),
+        note: args.note?.trim().slice(0, 300),
+        recordedAt: Date.now(),
+        recordedBy: user._id,
+      },
+      updatedAt: Date.now(),
+    });
     await addKalaProof(ctx, {
       projectId: args.projectId,
       requestId: project.requestId,

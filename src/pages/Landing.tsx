@@ -20,6 +20,8 @@ import {
   Handshake,
   Layers3,
   Lock,
+  Map,
+  MapPin,
   MessageSquare,
   PackageCheck,
   PenLine,
@@ -635,6 +637,30 @@ export default function Landing() {
         <Reveal delay={0.06}>
           <StudioPreview studioHref={studioCta} />
         </Reveal>
+      </section>
+
+      {/* KalaAtlas and KalaTrack */}
+      <section className="border-y border-maroon/10 bg-[#f6ecdc]">
+        <div className="mx-auto grid max-w-[1360px] gap-px bg-maroon/10 md:grid-cols-2">
+          <article className="bg-[#fbf5e8] p-6 md:p-10">
+            <div className="flex items-center gap-2 text-teal"><Map className="size-4" /><p className="label-caps text-[9px]">KalaAtlas · craft geography</p></div>
+            <h2 className="mt-4 max-w-[14ch] font-display text-3xl font-medium leading-[0.98] tracking-[-0.02em] text-ink md:text-5xl">Start with a place, not an empty search.</h2>
+            <p className="mt-4 max-w-[44ch] text-[11px] leading-[1.8] text-ink/55">Explore an accurate, open state map; read source-linked notes on regional craft traditions; then meet the makers whose profiles are actually here.</p>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link to="/kala-atlas" className="inline-flex items-center gap-2 rounded-full bg-maroon px-5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-ivory transition hover:bg-maroon-deep">Open KalaAtlas <MapPin className="size-3.5" /></Link>
+              <span className="text-[9px] text-ink/35">LGD-derived boundaries · CC0</span>
+            </div>
+          </article>
+          <article className="bg-[#f8efe0] p-6 md:p-10">
+            <div className="flex items-center gap-2 text-teal"><PackageCheck className="size-4" /><p className="label-caps text-[9px]">KalaTrack · production record</p></div>
+            <h2 className="mt-4 max-w-[14ch] font-display text-3xl font-medium leading-[0.98] tracking-[-0.02em] text-ink md:text-5xl">Follow the making, one dated step at a time.</h2>
+            <p className="mt-4 max-w-[44ch] text-[11px] leading-[1.8] text-ink/55">Milestones, artisan progress updates, final review and manual shipping details — all drawn from the same project record, never a second status system.</p>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link to="/track" className="inline-flex items-center gap-2 rounded-full border border-maroon/30 px-5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-maroon transition hover:bg-maroon/5">Open KalaTrack <ArrowUpRight className="size-3.5" /></Link>
+              <span className="text-[9px] text-ink/35">Sign in to view your own projects</span>
+            </div>
+          </article>
+        </div>
       </section>
 
       {/* KalaCollab editorial band */}

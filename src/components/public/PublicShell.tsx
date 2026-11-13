@@ -8,6 +8,7 @@ import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router";
 
 const LINKS = [
+  { to: "/kala-atlas", label: "KalaAtlas" },
   { to: "/studio", label: "Studio" },
   { to: "/how-it-works", label: "How it works" },
   { to: "/explore-artisans", label: "Explore artisans" },
@@ -34,7 +35,7 @@ export function PublicShell({
       <header className="sticky top-0 z-40 border-b border-maroon/10 bg-parchment/94 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1360px] items-center justify-between gap-4 px-4 py-3.5 md:px-8">
           <BrandLockup size="md" />
-          <nav className="hidden items-center gap-5 text-[10px] font-medium uppercase tracking-[0.08em] text-ink/58 lg:flex" aria-label="Main">
+          <nav className="hidden items-center gap-4 text-[9px] font-medium uppercase tracking-[0.07em] text-ink/58 xl:flex" aria-label="Main">
             {LINKS.map((link) => (
               <Link
                 key={link.to}
@@ -79,7 +80,7 @@ export function PublicShell({
               type="button"
               variant="outline"
               size="icon"
-              className="border-maroon/20 bg-card lg:hidden"
+              className="border-maroon/20 bg-card xl:hidden"
               aria-label={open ? "Close menu" : "Open menu"}
               aria-expanded={open}
               onClick={() => setOpen((value) => !value)}
@@ -89,7 +90,7 @@ export function PublicShell({
           </div>
         </div>
         {open && (
-          <nav className="border-t border-gold/20 bg-parchment px-4 pb-3 pt-1 lg:hidden" aria-label="Mobile">
+          <nav className="border-t border-gold/20 bg-parchment px-4 pb-3 pt-1 xl:hidden" aria-label="Mobile">
             {LINKS.map((link) => (
               <Link
                 key={link.to}

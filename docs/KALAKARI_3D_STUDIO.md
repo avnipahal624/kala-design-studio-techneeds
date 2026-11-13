@@ -22,7 +22,9 @@ Relevant files:
 - `src/lib/crafts.ts` — T-shirt product taxonomy.
 - `src/components/art/garments.tsx` — T-shirt 2D silhouette and the existing 2D renderer.
 
-No licensed GLB/GLTF assets were available in the repository. The meshes are original procedural geometry made from rounded boxes, tori and simple garment detailing. This avoids unlicensed assets and keeps the download smaller than a texture-heavy scanned garment.
+No licensed GLB/GLTF assets were available in the repository. The meshes are original procedural geometry built from tapered cloth panels, cylindrical sleeves, collars, lapel pieces and tube seams. This avoids unlicensed assets and is deliberately not described as a scanned or photoreal garment.
+
+The jacket uses separate left, right and back panels with a front opening, shoulder slope, collar, lapels, sleeve seams, cuff rings and a gold placket/hem seam. The T-shirt uses a shorter panel shell with a crew neck and short sleeves. The tote uses a structured body, tubular handles and stitched top/base trim.
 
 ## Supported products
 
@@ -39,7 +41,8 @@ Products without a 3D model do not show a 3D action at all. The 2D fallback is l
 
 ## How the 3D view works
 
-- The garment is rendered with a physical material using the current fabric colour.
+- The garment is rendered with a cloth material, a generated weave bump map, roughness and a subtle sheen using the current fabric colour.
+- Panels are double-sided so open edges, the placket and the back remain legible while orbiting.
 - Motif and text layers are converted to a canvas texture and projected with drei `Decal` onto the garment surface.
 - Layer x/y, size, rotation, opacity and colour are mapped into the decal transform.
 - The first six motif/text layers are previewed.
@@ -61,6 +64,10 @@ Products without a 3D model do not show a 3D action at all. The 2D fallback is l
 8. Save. The existing immutable design version and canvas persistence continue to work.
 
 Direct dragging of motifs in 3D is not implemented. The 2D editor remains the placement source of truth. This is a deliberate limitation rather than a simulated 3D interaction.
+
+## Design-to-request continuity
+
+When a saved design is open, the right-hand Studio summary now links directly to `/customer/create-request?designId=…`. The request form pre-fills the saved design title, product category, craft preference and colour direction, shows a 2D design reference, and submits the design ID with the brief. `requests.create` validates that the saved design belongs to the signed-in customer before attaching it. The design itself remains the versioned source of truth; no duplicate design format was added.
 
 ## Save and continuity
 

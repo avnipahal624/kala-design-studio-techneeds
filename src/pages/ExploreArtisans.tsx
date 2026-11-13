@@ -13,6 +13,7 @@ export default function ExploreArtisans() {
   const craft = params.get("craft") ?? "";
   const product = params.get("product") ?? "";
   const city = params.get("city") ?? "";
+  const state = params.get("state") ?? "";
   const verifiedOnly = params.get("verified") === "1";
   const [draftCity, setDraftCity] = useState(city);
   const [compare, setCompare] = useState<ArtisanSummary[]>([]);
@@ -23,10 +24,11 @@ export default function ExploreArtisans() {
       craft: craft || undefined,
       product: product || undefined,
       city: city || undefined,
+      state: state || undefined,
       verifiedOnly: verifiedOnly || undefined,
       limit: 36,
     }),
-    [craft, product, city, verifiedOnly],
+    [craft, product, city, state, verifiedOnly],
   );
   const artisans = useQuery(api.artisans.directory, query);
 
@@ -37,7 +39,7 @@ export default function ExploreArtisans() {
     setParams(next, { replace: true });
   }
 
-  const hasFilters = Boolean(craft || product || city || verifiedOnly);
+  const hasFilters = Boolean(craft || product || city || state || verifiedOnly);
 
   function toggleCompare(artisan: ArtisanSummary) {
     setCompare((current) => {

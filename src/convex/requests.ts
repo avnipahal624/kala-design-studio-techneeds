@@ -120,6 +120,7 @@ export const create = mutation({
     fulfilment: v.union(v.literal("shipping"), v.literal("local_handoff")),
     customerSuppliesProduct: v.boolean(),
     images: v.array(fileRef),
+    designId: v.optional(v.id("designs")),
     invitedArtisanIds: v.optional(v.array(v.id("users"))),
   },
   handler: async (ctx, args) => {
@@ -133,6 +134,14 @@ export const create = mutation({
     }
     const images = await validateImageRefs(ctx, args.images);
     await ensureCustomerProfile(ctx, user._id);
+    let designId: Id<"designs"> | undefined;
+    if (args.designId) {
+      const design = await ctx.db.get(args.designId);
+      if (!design || design.userId !== user._id) {
+        throw new Error("NOT_FOUND: saved design not found.");
+      }
+      designId = design._id;
+    }
 
     const now = Date.now();
     const dayAgo = now - 86_400_000;
@@ -175,6 +184,7 @@ export const create = mutation({
       fulfilment: args.fulfilment,
       customerSuppliesProduct: args.customerSuppliesProduct,
       images,
+      designId,
       requiredSkills: dna.requiredSkills,
       suggestedMaterials: dna.suggestedMaterials,
       productionNotes: dna.productionNotes,

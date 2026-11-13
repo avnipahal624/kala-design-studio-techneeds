@@ -40,6 +40,9 @@ const KalaVision = lazy(() => import("./pages/KalaVision.tsx"));
 const Creations = lazy(() => import("./pages/Creations.tsx"));
 const Studio = lazy(() => import("./pages/Studio.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+const KalaAtlas = lazy(() => import("./pages/KalaAtlas"));
+const KalaTrackList = lazy(() => import("./pages/KalaTrack").then((module) => ({ default: module.KalaTrackList })));
+const KalaTrackDetail = lazy(() => import("./pages/KalaTrack").then((module) => ({ default: module.KalaTrackDetail })));
 
 function RouteLoading() {
   return (
@@ -114,6 +117,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/demo/live" element={<DemoLive />} />
               <Route path="/how-it-works" element={<HowItWorksPage />} />
               <Route path="/explore-artisans" element={<ExploreArtisans />} />
+              <Route path="/kala-atlas" element={<KalaAtlas />} />
               <Route path="/kalacollab" element={<KalaCollabPage />} />
               <Route path="/passport/:token" element={<KalaPassportPublic />} />
               <Route path="/artisans/:artisanId" element={<ArtisanProfileRoute />} />
@@ -159,6 +163,8 @@ createRoot(document.getElementById("root")!).render(
 
               <Route path="/notifications" element={<Protected title="Sign in to see notifications" description="Activity on your account appears here."><NotificationsPage /></Protected>} />
               <Route path="/settings" element={<Protected title="Sign in to manage settings" description="Contact details and verification are private."><SettingsPage /></Protected>} />
+              <Route path="/track" element={<Protected title="Sign in to open KalaTrack" description="Production updates, milestones and shipping details are private to project participants."><KalaTrackList /></Protected>} />
+              <Route path="/track/:projectId" element={<Protected title="Sign in to open KalaTrack" description="This production record is private to the customer, artisan and reviewer."><KalaTrackDetail /></Protected>} />
               <Route path="/kalasaathi" element={<Protected title="Sign in to talk to KalaSaathi" description="KalaSaathi helps with briefs and craft language; it cannot make payments or approve work."><KalaSaathiPage /></Protected>} />
               <Route path="/projects/:projectId/dispute" element={<Protected title="Sign in to open support" description="Dispute cases are private to project participants and reviewers."><DisputePage /></Protected>} />
               <Route path="/projects/:projectId/proof" element={<Protected title="Sign in to view KalaProof" description="The evidence timeline is private to project participants."><ProjectKalaProofPage /></Protected>} />

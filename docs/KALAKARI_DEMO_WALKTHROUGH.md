@@ -73,7 +73,21 @@ Save creates a real design version tied to your account. Reopen it from the save
 
 Products without a 3D mesh show a labelled 2D fallback and do not offer a 3D button.
 
-### 5. Explore KalaCollab
+### 5. Discover a region in KalaAtlas
+
+Open `/kala-atlas` from the public navigation.
+
+The atlas loads a 36-feature state and union-territory boundary file. You can:
+
+- Zoom with the +/− controls, pan by dragging the map, and reset the camera.
+- Use the keyboard: Tab to a state, Enter/Space to select it; +/− to zoom, arrow keys to pan and 0 to reset.
+- Search for a state or use the mobile state selector.
+- Select Rajasthan, Uttar Pradesh, Punjab, West Bengal, Bihar or another curated region to see source-linked craft notes.
+- Follow an artisan profile from the same state.
+
+Selecting a state with no curated craft note deliberately shows an empty editorial state rather than invented content.
+
+### 6. Explore KalaCollab
 
 On `/demo/live`, scroll to the KalaCollab section. It displays three records:
 
@@ -87,7 +101,7 @@ For the product explanation, open `/kalacollab`.
 
 For real collaboration actions, sign in and use the customer/artisan workspaces. A demo artisan identity cannot be used to sign in.
 
-### 6. Inspect the artisan business view
+### 7. Inspect the artisan business view
 
 On `/demo/live`, the **Artisan workspace preview** shows the first seeded maker, Meera Joshi.
 
@@ -103,27 +117,50 @@ It includes:
 
 This is a read-only preview calculated from the demo maker's seeded records. It is not another user's account and it cannot approve work or move money.
 
-### 7. Open a completed creation's passport
+### 8. Open a completed creation's passport
 
 Open:
 
-- `/passport/demo-passport-1`
-- `/passport/demo-passport-2`
-- `/passport/demo-passport-3`
-- `/passport/demo-passport-4`
-- `/passport/demo-passport-5`
+- `/passport/demo-passport-1` — sample evidence reviewed and marked verified, with reviewer, scope and limitations.
+- `/passport/demo-passport-2` — evidence submitted, not yet reviewed.
+- `/passport/demo-passport-3` — review in progress.
+- `/passport/demo-passport-4` — review declined.
+
+`demo-passport-5` is intentionally revoked and private; its old public link returns the standard private/unavailable state, so the demo does not present a broken public link.
 
 The certificate shows:
 
-- The project title and craft.
-- The credited artisan.
-- Techniques and materials.
+- The project title, craft tradition and heritage-region reference.
+- The credited artisan (or a privacy-preserving placeholder when the owner hides names).
+- Production location only when the owner enables it.
+- Techniques and materials, with materials origin if known.
 - The approved design direction or the documented fallback.
 - The KalaProof milestone timeline.
-- The public privacy note.
+- The verification status, named reviewer, date, scope, limitations and public evidence summary when applicable.
+- The review/sharing history in the private view.
 - The sample-data label.
 
-It does not claim independent authentication or blockchain verification.
+A verified label means a Kalakari reviewer examined submitted evidence on the platform. It is not an independent authentication, a GI certificate, a government endorsement or a blockchain record.
+
+### 9. Inspect the sandbox payout split
+
+On `/demo/live`, scroll to the **Payout allocation · sandbox ledger** section.
+
+It shows:
+
+- Gross, platform fee and distributable amounts in integer paise.
+- Three proposed allocations with exact reconciliation.
+- A clear sandbox label and no claim of a transfer.
+
+To exercise the real workflow, sign in as the customer for a completed project, open its project workspace, propose a sandbox split, accept it to place holds, and run the simulator. No live payout provider is configured, so no money moves.
+
+### 10. Follow production in KalaTrack
+
+Open `/track` while signed in. The list is built from `projects.mine` and the detail route reuses `projects.detail`, KalaProof events, milestones and disputes.
+
+On a completed/delivered sample or your own project you can inspect the planned deadline, event timestamps, milestones and manual shipping record. Artisans can add dated progress with photos while production is active; only the assigned artisan can record shipping details after customer approval.
+
+The tracker does not invent GPS, live carrier data or delivery estimates.
 
 ## What requires a real account
 
@@ -165,4 +202,6 @@ Reset removes only entities tracked by the `kalakari-phase3-v1` seed key. It doe
 - Motifs are positioned in the 2D editor; direct 3D dragging is not implemented.
 - The three demo KalaCollab plans are read-only on the public showcase. Real collaboration actions use authenticated accounts.
 - Demo customer/artisan dashboards are not available through demo logins because no demo auth accounts are provisioned.
-- Browser screenshots, responsive visual checks and end-to-end browser tests were not run in this session.
+- Browser screenshots, responsive visual checks and end-to-end browser tests were not run in this session. The WebGL garment and SVG map were compiled and inspected in code, not visually verified.
+- The sandbox payout ledger never executes a provider transfer. Processor fees and taxes are explicitly not modelled because there is no live payout integration.
+- Passport review statuses in the demo are fictional sample decisions, not real verifications.

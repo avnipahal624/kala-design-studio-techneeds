@@ -48,6 +48,7 @@ export const saveCraftFit = mutation({
     craftHeadline: v.string(),
     city: v.string(),
     serviceRegion: v.string(),
+    state: v.optional(v.string()),
     mode: v.union(v.literal("individual"), v.literal("collective")),
     yearsExperience: v.number(),
     intro: v.string(),
@@ -77,6 +78,7 @@ export const saveCraftFit = mutation({
       craftHeadline: args.craftHeadline.trim().slice(0, 120),
       city: args.city.trim().slice(0, 80),
       serviceRegion: args.serviceRegion.trim().slice(0, 120),
+      state: args.state?.trim().slice(0, 80) || undefined,
       mode: args.mode,
       yearsExperience: Math.round(args.yearsExperience),
       intro: args.intro.trim().slice(0, 1200),
@@ -293,6 +295,7 @@ export const directory = query({
     craft: v.optional(v.string()),
     product: v.optional(v.string()),
     city: v.optional(v.string()),
+    state: v.optional(v.string()),
     availability: v.optional(v.string()),
     maxBudget: v.optional(v.number()),
     delivery: v.optional(v.string()),
@@ -312,6 +315,11 @@ export const directory = query({
       if (args.craft && ![...profile.skills, ...(profile.customSkills ?? [])].some((s) => s.toLowerCase().includes(args.craft!.toLowerCase()))) return false;
       if (args.product && !profile.products.some((p) => p.toLowerCase() === args.product!.toLowerCase())) return false;
       if (args.city && !profile.city.toLowerCase().includes(args.city.toLowerCase())) return false;
+      if (args.state) {
+        const profileState = (profile.state ?? profile.serviceRegion).toLowerCase();
+        const requested = args.state.toLowerCase();
+        if (profileState !== requested && !profile.serviceRegion.toLowerCase().includes(requested)) return false;
+      }
       if (args.availability && profile.availability !== args.availability) return false;
       if (args.maxBudget && profile.minProjectValue > args.maxBudget) return false;
       if (args.delivery === "nationwide" && !profile.shipsNationwide) return false;

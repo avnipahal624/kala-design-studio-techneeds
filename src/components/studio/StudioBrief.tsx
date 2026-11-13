@@ -2,8 +2,9 @@ import { api } from "@/convex/_generated/api";
 import { CRAFT_BY_ID, MOTIF_BY_ID, PRODUCT_BY_ID } from "@/lib/crafts";
 import type { CanvasState } from "@/lib/design-types";
 import { useAction, useQuery } from "convex/react";
-import { AlertTriangle, CircleAlert, Loader2, Ruler, Scissors, Sparkles } from "lucide-react";
+import { AlertTriangle, ArrowRight, CircleAlert, Loader2, Ruler, Scissors, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
+import { Link } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { assessCraftFeasibility, FeasibilityPanel } from "./FeasibilityPanel";
@@ -18,10 +19,12 @@ export function StudioBrief({
   canvas,
   craftId,
   title,
+  designId,
 }: {
   canvas: CanvasState;
   craftId?: string;
   title: string;
+  designId?: string;
 }) {
   const craft = craftId ? CRAFT_BY_ID[craftId] : undefined;
   const aiStatus = useQuery(api.aiStatus.status);
@@ -285,6 +288,19 @@ export function StudioBrief({
           <Ruler className="mt-0.5 size-3 shrink-0" />
           {title} · estimates exclude shipping, packaging and revisions.
         </p>
+      </div>
+
+      <div className="border-t border-maroon/12 bg-card p-3">
+        {designId ? (
+          <Button asChild className="w-full gap-2 rounded-full bg-maroon py-5 text-xs text-ivory hover:bg-maroon-deep">
+            <Link to={`/customer/create-request?designId=${designId}`}>
+              Continue to request <ArrowRight className="size-3.5" />
+            </Link>
+          </Button>
+        ) : (
+          <p className="text-[9px] leading-relaxed text-muted-foreground">Save this design to attach it to a customer brief.</p>
+        )}
+        <p className="mt-2 text-center text-[8px] uppercase tracking-[0.1em] text-muted-foreground">Feasibility is guidance, not a final quote</p>
       </div>
     </div>
   );
