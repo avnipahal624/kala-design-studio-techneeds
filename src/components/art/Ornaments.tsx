@@ -5,14 +5,14 @@
  * specific tradition.
  */
 
-const GOLD = "#c49a55";
-const MAROON = "#7b2040";
-const SAFFRON = "#f2a33a";
-const TEAL = "#087f83";
-const RANI = "#e66a99";
-const INDIGO = "#343e87";
-const VERMILION = "#d94b39";
-const IVORY = "#fff4de";
+const GOLD = "#b78a4e";
+const MAROON = "#7a302a";
+const SAFFRON = "#d8a65b";
+const TEAL = "#34483e";
+const RANI = "#a96558";
+const INDIGO = "#4b3a32";
+const VERMILION = "#a5483b";
+const IVORY = "#f7f2e8";
 
 function petal(r1: number, r2: number, width: number) {
   const mid = (r1 + r2) / 2;
@@ -226,16 +226,16 @@ export function Swatch({
             cx={(i % 4) * 16 + 8}
             cy={Math.floor(i / 4) * 16 + 8}
             r="1.8"
-            fill="#fff9ef"
+            fill="#f7f2e8"
             opacity="0.45"
           />
         ))}
       {pattern === "diagonal" &&
         Array.from({ length: 6 }).map((_, i) => (
-          <path key={i} d={`M${-20 + i * 16} 60 L${10 + i * 16} 0`} stroke="#fff9ef" strokeWidth="2" opacity="0.22" />
+          <path key={i} d={`M${-20 + i * 16} 60 L${10 + i * 16} 0`} stroke="#f7f2e8" strokeWidth="2" opacity="0.22" />
         ))}
       {pattern === "grid" && (
-        <g stroke="#fff9ef" strokeWidth="1.2" opacity="0.28">
+        <g stroke="#f7f2e8" strokeWidth="1.2" opacity="0.28">
           {[15, 30, 45].map((v) => (
             <g key={v}>
               <path d={`M${v} 0 V60`} />

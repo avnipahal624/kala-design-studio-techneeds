@@ -6,13 +6,13 @@ export function LogoMark({ className }: { className?: string }) {
       <g transform="translate(32 32)">
         {Array.from({ length: 12 }).map((_, i) => (
           <g key={i} transform={`rotate(${i * 30})`}>
-            <path d="M0,-9 C4,-15 4,-22 0,-28 C-4,-22 -4,-15 0,-9 Z" fill={i % 2 === 0 ? "#f2a33a" : "#d94b39"} />
-            <circle cx="0" cy="-29.5" r="1.5" fill="#087f83" />
+            <path d="M0,-9 C4,-15 4,-22 0,-28 C-4,-22 -4,-15 0,-9 Z" fill={i % 2 === 0 ? "#d8a65b" : "#a5483b"} />
+            <circle cx="0" cy="-29.5" r="1.5" fill="#34483e" />
           </g>
         ))}
-        <circle r="9" fill="#7b2040" />
-        <circle r="6" fill="none" stroke="#fff4de" strokeWidth="0.9" strokeDasharray="1.6 1.6" />
-        <circle r="2.4" fill="#f2a33a" />
+        <circle r="9" fill="#7a302a" />
+        <circle r="6" fill="none" stroke="#f7f2e8" strokeWidth="0.9" strokeDasharray="1.6 1.6" />
+        <circle r="2.4" fill="#d8a65b" />
       </g>
     </svg>
   );
@@ -74,7 +74,7 @@ export function BrandLockup({
               tone === "ivory" ? "text-ivory/70" : "text-muted-foreground"
             }`}
           >
-            AI Connects. Artisans Create.
+            Crafted by Heritage. Powered by Imagination.
           </span>
         )}
       </span>

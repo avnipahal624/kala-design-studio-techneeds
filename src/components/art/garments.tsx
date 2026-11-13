@@ -294,7 +294,7 @@ export function GarmentArt({
           {canvas.layers
             .filter((layer) => layer.id === selectedId)
             .map((layer) => (
-              <circle key={layer.id} cx={layer.x} cy={layer.y} r={2.5} fill="#fff9ef" stroke="#292322" strokeWidth="1" />
+              <circle key={layer.id} cx={layer.x} cy={layer.y} r={2.5} fill="#f7f2e8" stroke="#28231f" strokeWidth="1" />
             ))}
         </g>
       )}

@@ -84,7 +84,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   return (
     <div className="grid min-h-screen bg-parchment lg:grid-cols-[1.05fr_1fr]">
       {/* artwork panel */}
-      <section className="relative hidden overflow-hidden bg-[linear-gradient(160deg,#7b2040_0%,#651a34_55%,#3b1a3f_100%)] px-10 py-10 text-ivory lg:flex lg:flex-col">
+      <section className="relative hidden overflow-hidden bg-[linear-gradient(160deg,#3d2a25_0%,#32231f_55%,#241a17_100%)] px-10 py-10 text-ivory lg:flex lg:flex-col">
         <Mandala className="pointer-events-none absolute -right-32 -top-24 size-[460px] opacity-25" />
         <Mandala className="pointer-events-none absolute -bottom-40 -left-32 size-[420px] opacity-20" />
         <div className="relative flex flex-1 flex-col justify-between">

@@ -103,6 +103,12 @@ export const paymentStatusValidator = v.union(
   v.literal("failed"),
 );
 
+export const feasibilityVerdictValidator = v.union(
+  v.literal("likely_feasible"),
+  v.literal("needs_artisan_review"),
+  v.literal("potentially_impractical"),
+);
+
 export const kalaProofTypeValidator = v.union(
   v.literal("request_created"),
   v.literal("quote_requested"),
@@ -444,6 +450,83 @@ const schema = defineSchema(
       .index("by_project", ["projectId"])
       .index("by_request_artisan", ["requestId", "artisanId"]),
 
+    feasibilityReviews: defineTable({
+      requestId: v.id("customerRequests"),
+      artisanId: v.id("users"),
+      artisanName: v.string(),
+      verdict: feasibilityVerdictValidator,
+      note: v.string(),
+      estimatedDays: v.optional(v.number()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_request", ["requestId"])
+      .index("by_artisan", ["artisanId"])
+      .index("by_request_artisan", ["requestId", "artisanId"]),
+
+    /* ---------------------------------------------------------------- */
+    /* KalaCollab — coordinated multi-artisan production                 */
+    /* ---------------------------------------------------------------- */
+
+    collaborationPlans: defineTable({
+      requestId: v.id("customerRequests"),
+      customerId: v.id("users"),
+      title: v.string(),
+      status: v.union(
+        v.literal("draft"),
+        v.literal("awaiting_artisans"),
+        v.literal("ready"),
+        v.literal("approved"),
+        v.literal("in_production"),
+        v.literal("completed"),
+        v.literal("cancelled"),
+      ),
+      combinedBudgetInr: v.number(),
+      note: v.optional(v.string()),
+      approvedAt: v.optional(v.number()),
+      completedAt: v.optional(v.number()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_request", ["requestId"])
+      .index("by_customer", ["customerId", "createdAt"])
+      .index("by_status", ["status"]),
+
+    collaborationTasks: defineTable({
+      planId: v.id("collaborationPlans"),
+      requestId: v.id("customerRequests"),
+      position: v.number(),
+      title: v.string(),
+      role: v.string(),
+      skill: v.string(),
+      brief: v.string(),
+      dependsOnPosition: v.optional(v.number()),
+      artisanId: v.optional(v.id("users")),
+      matchScore: v.optional(v.number()),
+      matchReasons: v.array(v.string()),
+      status: v.union(
+        v.literal("proposed"),
+        v.literal("invited"),
+        v.literal("accepted"),
+        v.literal("declined"),
+        v.literal("in_progress"),
+        v.literal("submitted"),
+        v.literal("approved"),
+      ),
+      plannedAmountInr: v.number(),
+      quotedAmountInr: v.optional(v.number()),
+      artisanNote: v.optional(v.string()),
+      startedAt: v.optional(v.number()),
+      submittedAt: v.optional(v.number()),
+      approvedAt: v.optional(v.number()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_plan", ["planId"])
+      .index("by_plan_position", ["planId", "position"])
+      .index("by_artisan", ["artisanId"])
+      .index("by_request", ["requestId"]),
+
     /** Immutable quote snapshots. Every revision writes a new row. */
     quoteVersions: defineTable({
       quoteId: v.id("quotes"),
@@ -488,6 +571,18 @@ const schema = defineSchema(
       .index("by_artisan_created", ["artisanId", "createdAt"])
       .index("by_status", ["status"])
       .index("by_request", ["requestId"]),
+
+    kalaPassports: defineTable({
+      projectId: v.id("projects"),
+      customerId: v.id("users"),
+      shareToken: v.string(),
+      publicEnabled: v.boolean(),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_project", ["projectId"])
+      .index("by_token", ["shareToken"])
+      .index("by_customer", ["customerId", "createdAt"]),
 
     designConcepts: defineTable({
       projectId: v.id("projects"),

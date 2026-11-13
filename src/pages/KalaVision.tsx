@@ -23,10 +23,8 @@ import {
   CircleAlert,
   ImagePlus,
   Loader2,
-  Palette,
   ScanLine,
   Sparkles,
-  Upload,
   Wand2,
   X,
 } from "lucide-react";
@@ -39,6 +37,10 @@ type NarrativeState =
   | { status: "loading" }
   | { status: "ok"; narrative: string; craftNotes: string; caution: string; model: string }
   | { status: "unavailable"; reason: string };
+
+function analysisTimestamp() {
+  return Date.now();
+}
 
 function Badge({
   children,
@@ -121,23 +123,31 @@ export default function KalaVision() {
     if (!selectedId || !inspirations) return;
     const row = inspirations.find((item) => item._id === selectedId);
     if (!row) return;
-    setAnalysis(row.analysis as InspirationAnalysis);
-    setSignals({
-      palette: (row.analysis as InspirationAnalysis).palette,
-      brightness: (row.analysis as InspirationAnalysis).brightness,
-      saturation: (row.analysis as InspirationAnalysis).saturation,
-      contrast: (row.analysis as InspirationAnalysis).contrast,
-      edgeDensity: (row.analysis as InspirationAnalysis).edgeDensity,
-      symmetry: (row.analysis as InspirationAnalysis).symmetry,
-      aspectRatio: (row.analysis as InspirationAnalysis).aspectRatio,
-      dominantWarmth: (row.analysis as InspirationAnalysis).dominantWarmth,
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      const saved = row.analysis as InspirationAnalysis;
+      setAnalysis(saved);
+      setSignals({
+        palette: saved.palette,
+        brightness: saved.brightness,
+        saturation: saved.saturation,
+        contrast: saved.contrast,
+        edgeDensity: saved.edgeDensity,
+        symmetry: saved.symmetry,
+        aspectRatio: saved.aspectRatio,
+        dominantWarmth: saved.dominantWarmth,
+      });
+      setConcept((row.concept as Concept) ?? null);
+      setCraftId(row.craftId ?? (row.concept as Concept | null)?.craftId ?? null);
+      setSavedImageUrl(row.imageUrl);
+      setInspirationId(row._id as Id<"inspirations">);
+      setExistingDesignId((row.designId as Id<"designs"> | undefined) ?? null);
+      setProductType(row.productType as ProductTypeId);
     });
-    setConcept((row.concept as Concept) ?? null);
-    setCraftId(row.craftId ?? (row.concept as Concept | null)?.craftId ?? null);
-    setSavedImageUrl(row.imageUrl);
-    setInspirationId(row._id as Id<"inspirations">);
-    setExistingDesignId((row.designId as Id<"designs"> | undefined) ?? null);
-    setProductType(row.productType as ProductTypeId);
+    return () => {
+      cancelled = true;
+    };
   }, [selectedId, inspirations]);
 
   const craftOptions = useMemo(() => {
@@ -176,6 +186,7 @@ export default function KalaVision() {
   function buildSignalsAnalysis(
     measured: ImageSignals,
     type: ProductTypeId,
+    generatedAt: number,
     chosenCraftId?: string,
   ) {
     const ranked = suggestCrafts(
@@ -220,7 +231,7 @@ export default function KalaVision() {
         "Material composition cannot be determined from an image alone.",
         "Headwear, jewellery or background details are not interpreted.",
       ],
-      generatedAt: Date.now(),
+      generatedAt,
     };
 
     return {
@@ -244,7 +255,11 @@ export default function KalaVision() {
     setNarrative({ status: "idle" });
     try {
       const measured = await analyseImage(file);
-      const { analysisPayload, concept: nextConcept } = buildSignalsAnalysis(measured, productType);
+      const { analysisPayload, concept: nextConcept } = buildSignalsAnalysis(
+        measured,
+        productType,
+        analysisTimestamp(),
+      );
       setSignals(measured);
       setAnalysis(analysisPayload);
       setConcept(nextConcept);
@@ -333,6 +348,7 @@ export default function KalaVision() {
     const { analysisPayload, concept: nextConcept } = buildSignalsAnalysis(
       signals,
       productType,
+      analysisTimestamp(),
       nextCraftId,
     );
     setAnalysis(analysisPayload);
@@ -479,6 +495,7 @@ export default function KalaVision() {
                         const { analysisPayload, concept: nextConcept } = buildSignalsAnalysis(
                           signals,
                           item.id,
+                          analysisTimestamp(),
                           craftId ?? undefined,
                         );
                         setAnalysis(analysisPayload);

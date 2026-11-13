@@ -4,7 +4,6 @@ import {
   MOTIF_BY_ID,
   PRODUCT_BY_ID,
   type Craft,
-  type MotifId,
   type ProductTypeId,
 } from "@/lib/crafts";
 import {
@@ -319,7 +318,6 @@ export function buildCanvas(concept: Concept): CanvasState {
   const craft = CRAFT_BY_ID[concept.craftId] ?? CRAFTS[0];
   const [primary, secondary, accent] = concept.palette;
   const base = product.baseFabric;
-  const ink = readableInk(base);
 
   const emblem = concept.motifIds[0] ?? craft.motifs[0] ?? "mandala";
   const flank = concept.motifIds[1] ?? "sprig";

@@ -6,6 +6,8 @@ import { useAction, useMutation, useQuery } from "convex/react";
 import {
   ArrowRight,
   BadgeCheck,
+  BookOpen,
+  Check,
   CheckCircle2,
   CreditCard,
   Hammer,
@@ -73,7 +75,6 @@ export function ProjectWorkspace({ projectId }: { projectId: Id<"projects"> }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const detail = useQuery(api.projects.detail, { projectId });
-  const payments = useQuery(api.payments.forProject, { projectId });
   const paymentConfig = useQuery(api.payments.config);
   const sandboxOrder = useMutation(api.payments.createSandboxOrder);
   const confirmSandbox = useMutation(api.payments.confirmSandbox);
@@ -124,6 +125,15 @@ export function ProjectWorkspace({ projectId }: { projectId: Id<"projects"> }) {
   const activeDispute = disputes.find((row) => !["resolved", "closed"].includes(row.status));
   const approvedConcept = concepts.find((concept) => concept.status === "approved");
   const submittedConcept = concepts.find((concept) => concept.status === "submitted");
+  const stages = [
+    { label: "Brief", done: true, current: false },
+    { label: "Quote", done: true, current: false },
+    { label: "Concept", done: Boolean(project.conceptApprovedAt), current: project.status === "funded" && !project.conceptApprovedAt },
+    { label: "Payment", done: project.paymentStatus === "confirmed", current: project.status === "awaiting_payment" },
+    { label: "Making", done: ["review_pending", "delivered", "completed"].includes(project.status), current: project.status === "in_production" },
+    { label: "Review", done: ["delivered", "completed"].includes(project.status), current: project.status === "review_pending" },
+    { label: "Delivery", done: project.status === "completed", current: project.status === "delivered" },
+  ];
   const canStart = isArtisan && project.status === "funded" && project.paymentStatus === "confirmed" && Boolean(project.conceptApprovedAt);
   const reviewGiven = reviews.some((review) => review.authorId === viewer.userId);
 
@@ -165,7 +175,7 @@ export function ProjectWorkspace({ projectId }: { projectId: Id<"projects"> }) {
         description: order.projectTitle,
         order_id: order.providerOrderId,
         prefill: { name: user?.name ?? "", email: user?.email ?? "" },
-        theme: { color: "#7b2040" },
+        theme: { color: "#7a302a" },
         handler: async (response: { razorpay_payment_id: string; razorpay_signature: string }) => {
           try {
             await verifyCheckout({
@@ -206,7 +216,7 @@ export function ProjectWorkspace({ projectId }: { projectId: Id<"projects"> }) {
 
   return (
     <div className="space-y-5">
-      <header className="relative overflow-hidden rounded-2xl border border-maroon/20 bg-[linear-gradient(115deg,#7b2040_0%,#651a34_55%,#4a1738_100%)] p-5 text-ivory md:p-7">
+      <header className="relative overflow-hidden rounded-2xl border border-maroon/20 bg-[linear-gradient(115deg,#4d2d26_0%,#3d2a25_55%,#2c211d_100%)] p-5 text-ivory md:p-7">
         <div className="relative flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-[60ch]">
             <div className="flex flex-wrap items-center gap-2">
@@ -226,7 +236,12 @@ export function ProjectWorkspace({ projectId }: { projectId: Id<"projects"> }) {
               {request?.deadline && <span className="rounded-full border border-ivory/20 px-2 py-0.5">Target {formatDate(request.deadline)}</span>}
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2">
+            {project.status === "completed" && (
+              <Button asChild variant="outline" size="sm" className="rounded-full border-gold/45 bg-gold/10 text-ivory hover:bg-gold/20">
+                <Link to={`/projects/${projectId}/passport`}><BookOpen className="size-3.5" /> KalaPassport</Link>
+              </Button>
+            )}
             <Button variant="outline" size="sm" onClick={() => void openMessages()} disabled={busy === "message"} className="rounded-full border-ivory/30 bg-ivory/10 text-ivory hover:bg-ivory/20">
               <MessageSquare className="size-3.5" /> Message
             </Button>
@@ -240,6 +255,23 @@ export function ProjectWorkspace({ projectId }: { projectId: Id<"projects"> }) {
           </div>
         </div>
       </header>
+
+      <div className="overflow-hidden border border-maroon/15 bg-card">
+        <div className="flex items-center justify-between gap-2 border-b border-maroon/10 px-4 py-2.5">
+          <p className="label-caps text-[8px] text-teal">Production trail</p>
+          <p className="text-[8px] uppercase tracking-[0.1em] text-muted-foreground">States from project + KalaProof</p>
+        </div>
+        <div className="grid grid-cols-7">
+          {stages.map((stage, index) => (
+            <div key={stage.label} className={`relative px-1 py-3 text-center ${index < stages.length - 1 ? "border-r border-maroon/8" : ""}`}>
+              <span className={`mx-auto flex size-5 items-center justify-center rounded-full border text-[8px] font-semibold ${stage.done ? "border-emerald/35 bg-emerald text-ivory" : stage.current ? "border-maroon bg-maroon text-ivory" : "border-maroon/20 bg-parchment text-ink/35"}`}>
+                {stage.done ? <Check className="size-3" /> : index + 1}
+              </span>
+              <p className={`mt-1.5 truncate text-[8px] font-medium uppercase tracking-[0.06em] ${stage.current ? "text-maroon" : stage.done ? "text-emerald" : "text-ink/35"}`}>{stage.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {activeDispute && (
         <div className="rounded-xl border border-vermilion/30 bg-vermilion/5 px-4 py-3 text-sm text-vermilion">

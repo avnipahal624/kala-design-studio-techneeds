@@ -3,9 +3,10 @@ import { CRAFT_BY_ID, MOTIF_BY_ID, PRODUCT_BY_ID } from "@/lib/crafts";
 import type { CanvasState } from "@/lib/design-types";
 import { useAction, useQuery } from "convex/react";
 import { AlertTriangle, CircleAlert, Loader2, Ruler, Scissors, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { assessCraftFeasibility, FeasibilityPanel } from "./FeasibilityPanel";
 
 type Narrative =
   | { status: "idle" }
@@ -45,6 +46,15 @@ export function StudioBrief({
         Math.max(2, Math.round(craft.handworkDays[1] * (0.6 + complexity / 100))),
       ]
     : null;
+  const feasibility = useMemo(
+    () =>
+      assessCraftFeasibility({
+        canvas,
+        craftId,
+        hasReference: true,
+      }),
+    [canvas, craftId],
+  );
 
   async function requestNarrative() {
     if (!craft) return;
@@ -89,14 +99,16 @@ export function StudioBrief({
       <div className="border-b border-maroon/12 px-4 py-3">
         <div className="flex items-center gap-2">
           <Scissors className="size-4 text-teal" />
-          <h2 className="font-display text-sm font-semibold text-maroon">Production read-out</h2>
+          <h2 className="font-display text-sm font-semibold text-maroon">Design intelligence</h2>
         </div>
         <p className="mt-0.5 text-[10px] leading-relaxed text-muted-foreground">
-          Rule-based guidance, not a quote or a promise.
+          Feasibility, craft direction and production guidance — never a final quote.
         </p>
       </div>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4">
+        <FeasibilityPanel result={feasibility} compact className="border-maroon/12" />
+
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-lg border border-maroon/15 bg-parchment/60 p-2.5">
             <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Complexity</p>

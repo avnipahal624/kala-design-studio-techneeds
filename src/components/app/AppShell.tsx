@@ -56,12 +56,12 @@ function SidebarInner({ onNavigate }: { onNavigate?: () => void }) {
   const initial = (user?.name ?? user?.displayName ?? "K").trim().charAt(0).toUpperCase();
 
   return (
-    <div className="relative flex h-full flex-col overflow-hidden bg-[linear-gradient(175deg,#7b2040_0%,#651a34_45%,#4d1229_100%)] text-ivory">
+    <div className="relative flex h-full flex-col overflow-hidden bg-[linear-gradient(175deg,#3d2a25_0%,#32231f_48%,#241a17_100%)] text-ivory">
       <div className="pointer-events-none absolute -right-16 top-24 opacity-[0.13]">
         <Mandala className="size-64" />
       </div>
       <div className="pointer-events-none absolute -bottom-24 -left-20 opacity-[0.16]">
-        <Mandala className="size-72" colors={["#f2a33a", "#e66a99", "#087f83", "#fff4de", "#c49a55"]} />
+        <Mandala className="size-72" colors={["#d8a65b", "#a96558", "#9bad9d", "#f7f2e8", "#b78a4e"]} />
       </div>
 
       <div className="relative px-5 pb-5 pt-6">

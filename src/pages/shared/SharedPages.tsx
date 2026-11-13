@@ -7,11 +7,11 @@ import { KalaSaathiChat } from "@/components/kalasaathi/KalaSaathiPanel";
 import { StatusPill } from "@/components/marketplace/Bits";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { formatDateTime, relativeTime, roleHome } from "@/lib/marketplace";
+import { formatDateTime, relativeTime } from "@/lib/marketplace";
 import { useMutation, useQuery } from "convex/react";
 import {
   BadgeCheck, Bell, CheckCheck, ChevronLeft, CircleHelp, FileText, Gavel,
-  Loader2, MessageSquare, RotateCcw, ShieldCheck, Sparkles, Upload, UserCog, XCircle,
+  Loader2, RotateCcw, ShieldCheck, Sparkles, UserCog, XCircle,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router";

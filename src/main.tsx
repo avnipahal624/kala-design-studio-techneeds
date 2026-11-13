@@ -12,6 +12,9 @@ import "./index.css";
 import { PublicShell } from "@/components/public/PublicShell";
 import Landing from "./pages/Landing";
 import ExploreArtisans, { ArtisanPublicPage } from "./pages/ExploreArtisans";
+import KalaCollabPage from "./pages/KalaCollab";
+import { KalaPassportPrivate, KalaPassportPublic } from "./pages/KalaPassport";
+import ArtisanCollaborations from "./pages/artisan/Collaborations";
 import { CraftsPage, ForArtisansPage, HowItWorksPage, KalaRightsPage, TrustAndSafetyPage, WhyKalkaariPage } from "./pages/public/InfoPages";
 import {
   CreateRequest, CustomerDashboard, CustomerPayments, CustomerProjectDetail,
@@ -109,6 +112,8 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/demo" element={<DemoPage />} />
               <Route path="/how-it-works" element={<HowItWorksPage />} />
               <Route path="/explore-artisans" element={<ExploreArtisans />} />
+              <Route path="/kalacollab" element={<KalaCollabPage />} />
+              <Route path="/passport/:token" element={<KalaPassportPublic />} />
               <Route path="/artisans/:artisanId" element={<ArtisanProfileRoute />} />
               <Route path="/crafts" element={<CraftsPage />} />
               <Route path="/trust-and-safety" element={<TrustAndSafetyPage />} />
@@ -133,6 +138,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/artisan/jobs" element={<Protected title="Sign in to see KalaJobs" description="Matched briefs use your CraftFit skills, materials and capacity."><ArtisanJobs /></Protected>} />
               <Route path="/artisan/jobs/:requestId" element={<Protected title="Sign in to view this job" description="The full brief is visible to eligible and invited artisans."><ArtisanJobDetail /></Protected>} />
               <Route path="/artisan/quotes" element={<Protected title="Sign in to see your quotes" description="Quote versions and customer decisions stay private to you."><ArtisanQuotes /></Protected>} />
+              <Route path="/artisan/collaborations" element={<Protected title="Sign in to see KalaCollab tasks" description="Collaboration invitations and task ownership are private to you."><ArtisanCollaborations /></Protected>} />
               <Route path="/artisan/projects" element={<Protected title="Sign in to see your projects" description="Funded work and handover records are tied to your account."><ArtisanProjects /></Protected>} />
               <Route path="/artisan/projects/:projectId" element={<Protected title="Sign in to open this project" description="Concepts, progress and payouts are private to project participants."><ArtisanProjectDetail /></Protected>} />
               <Route path="/artisan/profile" element={<Navigate to="/settings" replace />} />
@@ -154,6 +160,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/kalasaathi" element={<Protected title="Sign in to talk to KalaSaathi" description="KalaSaathi helps with briefs and craft language; it cannot make payments or approve work."><KalaSaathiPage /></Protected>} />
               <Route path="/projects/:projectId/dispute" element={<Protected title="Sign in to open support" description="Dispute cases are private to project participants and reviewers."><DisputePage /></Protected>} />
               <Route path="/projects/:projectId/proof" element={<Protected title="Sign in to view KalaProof" description="The evidence timeline is private to project participants."><ProjectKalaProofPage /></Protected>} />
+              <Route path="/projects/:projectId/passport" element={<Protected title="Sign in to view KalaPassport" description="The passport is private until its owner shares the public summary."><KalaPassportPrivate /></Protected>} />
 
               <Route path="/dashboard" element={<Navigate to="/customer/dashboard" replace />} />
               <Route path="/kalavision" element={<Protected title="Sign in to use the legacy studio" description="The original inspiration canvas is kept as an archive."><KalaVision /></Protected>} />

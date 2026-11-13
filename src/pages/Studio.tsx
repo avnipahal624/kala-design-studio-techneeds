@@ -1,5 +1,4 @@
 import { LogoMark } from "@/components/brand/Logo";
-import { Motif } from "@/components/art/Motif";
 import { getGarment, PatternDefs } from "@/components/art/garments";
 import { StudioBrief } from "@/components/studio/StudioBrief";
 import { StudioTools, type StudioTab } from "@/components/studio/StudioTools";
@@ -24,11 +23,13 @@ import {
   useRef,
   useState,
 } from "react";
-import { LayerShape } from "@/components/art/garments";
+import { GarmentArt, LayerShape } from "@/components/art/garments";
 import {
   ArrowLeft,
   Check,
   Download,
+  Eye,
+  EyeOff,
   History,
   Loader2,
   Minus,
@@ -108,6 +109,7 @@ export default function Studio() {
   const [briefOpen, setBriefOpen] = useState(false);
   const [versionsOpen, setVersionsOpen] = useState(false);
   const [restoring, setRestoring] = useState<number | null>(null);
+  const [compareSaved, setCompareSaved] = useState(false);
 
   const svgRef = useRef<SVGSVGElement>(null);
   const initialisedFor = useRef<string | null>(null);
@@ -135,6 +137,14 @@ export default function Studio() {
     [canvas, selectedId],
   );
   const dirty = Boolean(canvas && JSON.stringify(canvas) !== savedSnapshot);
+  const savedCanvas = useMemo<CanvasState | null>(() => {
+    if (!savedSnapshot) return null;
+    try {
+      return JSON.parse(savedSnapshot) as CanvasState;
+    } catch {
+      return null;
+    }
+  }, [savedSnapshot]);
 
   // Warn before leaving with unsaved canvas changes.
   useEffect(() => {
@@ -182,11 +192,11 @@ export default function Studio() {
     const ink = readableInk(canvas.fabricColor);
     const candidates = [
       ...(craft?.palette ?? []),
-      "#7b2040",
-      "#d94b39",
-      "#087f83",
+      "#7a302a",
+      "#a5483b",
+      "#34483e",
       "#343e87",
-      "#fff4de",
+      "#f7f2e8",
       "#292322",
     ];
     const chosen =
@@ -194,7 +204,7 @@ export default function Studio() {
         const a = hex.replace("#", "");
         const b = canvas.fabricColor.replace("#", "");
         return a !== b && ink !== hex;
-      }) ?? "#7b2040";
+      }) ?? "#7a302a";
     const offset = (canvas.layers.length % 5) * 14 - 28;
     const layer: DesignLayer = {
       id: uid("m"),
@@ -509,7 +519,7 @@ export default function Studio() {
             reject(new Error("Canvas unavailable"));
             return;
           }
-          context.fillStyle = "#fff9ef";
+          context.fillStyle = "#f7f2e8";
           context.fillRect(0, 0, 1200, 1200);
           context.drawImage(image, 0, 0, 1200, 1200);
           output.toBlob((blob) => {
@@ -725,6 +735,16 @@ export default function Studio() {
             <Button
               variant="outline"
               size="sm"
+              className="gap-1.5 border-maroon/20 text-[11px] text-maroon"
+              onClick={() => setCompareSaved((value) => !value)}
+              aria-pressed={compareSaved}
+            >
+              {compareSaved ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+              <span className="hidden sm:inline">{compareSaved ? "Hide saved" : "Compare saved"}</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               className="gap-1.5 border-maroon/20 text-[11px] text-maroon xl:hidden"
               onClick={() => setBriefOpen(true)}
             >
@@ -767,7 +787,7 @@ export default function Studio() {
         </aside>
 
         {/* canvas */}
-        <main className="flex min-w-0 flex-1 flex-col bg-[#f6e9d4]">
+        <main className="flex min-w-0 flex-1 flex-col bg-[#e9dfd0]">
           <div className="min-h-0 flex-1 overflow-auto p-3 md:p-5">
             <div
               className="mx-auto"
@@ -778,7 +798,7 @@ export default function Studio() {
               }}
             >
               <StudioErrorBoundary>
-                <div className="rounded-xl border border-maroon/20 bg-[#fff8ec] shadow-[0_1px_0_rgba(255,255,255,0.6)_inset]">
+                <div className="relative rounded-xl border border-maroon/20 bg-[#fbf6eb] shadow-[0_1px_0_rgba(255,255,255,0.6)_inset]">
                   <svg
                     ref={svgRef}
                     viewBox={`0 0 ${STAGE} ${STAGE}`}
@@ -804,7 +824,7 @@ export default function Studio() {
                     <rect
                       width={STAGE}
                       height={STAGE}
-                      fill="#fff8ec"
+                      fill="#fbf6eb"
                       onPointerDown={() => setSelectedId(null)}
                     />
                     <g opacity="0.35" pointerEvents="none">
@@ -815,7 +835,7 @@ export default function Studio() {
                           y1={0}
                           x2={index * 50}
                           y2={STAGE}
-                          stroke="#e6d2b2"
+                          stroke="#d8c9b6"
                           strokeWidth="0.5"
                           strokeDasharray="2 8"
                         />
@@ -827,14 +847,14 @@ export default function Studio() {
                           y1={index * 50}
                           x2={STAGE}
                           y2={index * 50}
-                          stroke="#e6d2b2"
+                          stroke="#d8c9b6"
                           strokeWidth="0.5"
                           strokeDasharray="2 8"
                         />
                       ))}
                     </g>
 
-                    <text x={450} y={40} textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="13" letterSpacing="4" fill="#7b2040" opacity="0.45">
+                    <text x={450} y={40} textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="13" letterSpacing="4" fill="#7a302a" opacity="0.45">
                       {canvas.silhouette.toUpperCase()} · KALकारी LEGACY STUDIO
                     </text>
 
@@ -871,7 +891,7 @@ export default function Studio() {
                           width={selectedBox.w}
                           height={selectedBox.h}
                           fill="none"
-                          stroke="#7b2040"
+                          stroke="#7a302a"
                           strokeWidth="1.5"
                           strokeDasharray="6 5"
                           vectorEffect="non-scaling-stroke"
@@ -881,38 +901,47 @@ export default function Studio() {
                           y1={selectedBox.y}
                           x2={selectedLayer.x}
                           y2={selectedBox.y - 34}
-                          stroke="#7b2040"
+                          stroke="#7a302a"
                           strokeWidth="1.5"
                         />
                         <circle
                           cx={selectedLayer.x}
                           cy={selectedBox.y - 40}
                           r="9"
-                          fill="#fff4de"
-                          stroke="#7b2040"
+                          fill="#f7f2e8"
+                          stroke="#7a302a"
                           strokeWidth="1.5"
                           style={{ cursor: "grab" }}
                           onPointerDown={(event) => beginHandleDrag(event, "rotate")}
                         />
-                        <circle cx={selectedLayer.x} cy={selectedBox.y - 40} r="3" fill="#7b2040" pointerEvents="none" />
+                        <circle cx={selectedLayer.x} cy={selectedBox.y - 40} r="3" fill="#7a302a" pointerEvents="none" />
                         <rect
                           x={selectedBox.x + selectedBox.w - 9}
                           y={selectedBox.y + selectedBox.h - 9}
                           width="18"
                           height="18"
                           rx="3"
-                          fill="#f2a33a"
-                          stroke="#7b2040"
+                          fill="#d8a65b"
+                          stroke="#7a302a"
                           strokeWidth="1.5"
                           style={{ cursor: "nwse-resize" }}
                           onPointerDown={(event) => beginHandleDrag(event, "resize")}
                         />
-                        <circle cx={selectedBox.x} cy={selectedBox.y} r="3.5" fill="#7b2040" />
-                        <circle cx={selectedBox.x + selectedBox.w} cy={selectedBox.y} r="3.5" fill="#7b2040" />
-                        <circle cx={selectedBox.x} cy={selectedBox.y + selectedBox.h} r="3.5" fill="#7b2040" />
+                        <circle cx={selectedBox.x} cy={selectedBox.y} r="3.5" fill="#7a302a" />
+                        <circle cx={selectedBox.x + selectedBox.w} cy={selectedBox.y} r="3.5" fill="#7a302a" />
+                        <circle cx={selectedBox.x} cy={selectedBox.y + selectedBox.h} r="3.5" fill="#7a302a" />
                       </g>
                     )}
                   </svg>
+                  {compareSaved && savedCanvas && (
+                    <div className="pointer-events-none absolute bottom-3 left-3 w-[132px] overflow-hidden rounded-lg border border-maroon/25 bg-[#fbf6eb] shadow-[0_14px_30px_-15px_rgba(40,35,31,0.5)] sm:bottom-4 sm:left-4 sm:w-[172px]">
+                      <div className="flex items-center justify-between border-b border-maroon/12 px-2 py-1.5">
+                        <span className="text-[7px] font-semibold uppercase tracking-[0.12em] text-maroon/60">Last saved</span>
+                        <span className="text-[7px] text-muted-foreground">v{design.versionCount}</span>
+                      </div>
+                      <GarmentArt canvas={savedCanvas} className="h-auto w-full" />
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-2 flex flex-wrap items-center justify-between gap-2 px-1">

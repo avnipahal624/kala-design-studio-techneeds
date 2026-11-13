@@ -20,6 +20,7 @@ import {
   FolderKanban,
   Gavel,
   Hammer,
+  Handshake,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -50,6 +51,7 @@ const NAV: Record<Role, NavItem[]> = {
   artisan: [
     { to: "/artisan/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/artisan/jobs", label: "KalaJobs", icon: Hammer },
+    { to: "/artisan/collaborations", label: "KalaCollab", icon: Handshake },
     { to: "/artisan/quotes", label: "My quotes", icon: FileText },
     { to: "/artisan/projects", label: "Projects", icon: FolderKanban },
     { to: "/artisan/portfolio", label: "Portfolio", icon: Sparkles },
@@ -78,7 +80,6 @@ function NotificationsMenu() {
   const notifications = useQuery(api.notifications.list);
   const markRead = useMutation(api.notifications.markRead);
   const markAllRead = useMutation(api.notifications.markAllRead);
-  const navigate = useNavigate();
   const unread = notifications?.unread ?? 0;
 
   return (
@@ -184,12 +185,12 @@ function Sidebar({ role, onNavigate }: { role: Role; onNavigate?: () => void }) 
   const switchTarget = role === "artisan" ? "customer" : "artisan";
 
   return (
-    <div className="relative flex h-full flex-col overflow-hidden bg-[linear-gradient(178deg,#7b2040_0%,#651a34_52%,#461126_100%)] text-ivory">
+    <div className="relative flex h-full flex-col overflow-hidden bg-[linear-gradient(178deg,#3d2a25_0%,#32231f_50%,#241a17_100%)] text-ivory">
       <div className="pointer-events-none absolute -right-20 top-20 opacity-[0.12]">
         <Mandala className="size-64" />
       </div>
       <div className="pointer-events-none absolute -bottom-24 -left-24 opacity-[0.14]">
-        <Mandala className="size-72" colors={["#f2a33a", "#e66a99", "#087f83", "#fff4de", "#c49a55"]} />
+        <Mandala className="size-72" colors={["#d8a65b", "#a96558", "#9bad9d", "#f7f2e8", "#b78a4e"]} />
       </div>
 
       <div className="relative px-5 pb-4 pt-6">

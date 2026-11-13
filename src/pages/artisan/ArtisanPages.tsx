@@ -12,10 +12,10 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQuery } from "convex/react";
 import {
-  ArrowRight, BadgeCheck, CalendarClock, CheckCircle2, ChevronLeft, Clock,
-  FileText, Hammer, ImagePlus, IndianRupee, Loader2, MapPin, MessageSquare,
-  Package, Pencil, Plus, ReceiptText, ScanText, Send, ShieldCheck, Sparkles,
-  Trash2, TrendingUp, Upload, Users, Wallet,
+  ArrowRight, BadgeCheck, CalendarClock, CheckCircle2, ChevronLeft,
+  Hammer, Handshake, ImagePlus, IndianRupee, Loader2,
+  Package, Plus, ReceiptText, ScanText, Send, ShieldCheck, Sparkles,
+  Trash2, Upload,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
@@ -29,6 +29,9 @@ export function ArtisanDashboard() {
   const { user } = useAuth();
   const data = useQuery(api.artisans.dashboard);
   const quotes = useQuery(api.quotes.forArtisan);
+  const collaborations = useQuery(api.collaboration.invitations);
+  const collabInvites = (collaborations ?? []).filter((task) => task.status === "invited").length;
+  const activeCollabs = (collaborations ?? []).filter((task) => ["accepted", "in_progress"].includes(task.status));
 
   if (data === undefined) return <PortalShell role="artisan" title="Dashboard"><div className="h-64 animate-pulse rounded-2xl bg-card" /></PortalShell>;
   if (data === null) {
@@ -58,7 +61,7 @@ export function ArtisanDashboard() {
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Active projects" value={data.counts.activeProjects} hint="Funded work in hand" tone="maroon" />
         <StatCard label="Quotes open" value={data.counts.pendingQuotes} hint="Awaiting customer" tone="teal" />
-        <StatCard label="Invitations" value={data.counts.invites} hint="Direct from customers" tone="saffron" />
+        <StatCard label="Invitations" value={data.counts.invites + collabInvites} hint="Direct + KalaCollab tasks" tone="saffron" />
         <StatCard label="Pending payout" value={formatInr(data.earnings.pendingPayoutInr)} hint={`${formatInr(data.earnings.lifetimeReleasedInr)} released`} tone="emerald" />
       </div>
 
@@ -95,6 +98,26 @@ export function ArtisanDashboard() {
               <Link to="/artisan/onboarding" className="flex items-center justify-between rounded-lg bg-parchment/60 px-2.5 py-2"><span className="text-ink/65">CraftFit details</span><span className="font-semibold text-maroon">Edit →</span></Link>
               <Link to="/artisan/availability" className="flex items-center justify-between rounded-lg bg-parchment/60 px-2.5 py-2"><span className="text-ink/65">Availability</span><span className="font-semibold text-maroon">Manage →</span></Link>
             </div>
+          </section>
+          <section className="rounded-2xl border border-maroon/15 bg-card p-4">
+            <div className="flex items-center justify-between gap-2">
+              <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-maroon"><Handshake className="size-3.5" /> KalaCollab</p>
+              <Link to="/artisan/collaborations" className="text-[10px] font-semibold text-teal-deep">Open →</Link>
+            </div>
+            {collaborations === undefined ? (
+              <div className="mt-2 h-12 animate-pulse bg-parchment" />
+            ) : collabInvites + activeCollabs.length === 0 ? (
+              <p className="mt-2 text-[10px] leading-relaxed text-ink/50">No task invitations yet. Multi-maker briefs can propose you for one part of a coordinated piece.</p>
+            ) : (
+              <div className="mt-2 space-y-1.5">
+                {collaborations.slice(0, 3).map((task) => (
+                  <Link key={task._id} to="/artisan/collaborations" className="block border border-maroon/10 bg-parchment/55 px-2.5 py-2">
+                    <p className="truncate text-[10px] font-medium text-ink/70">{task.title}</p>
+                    <p className="text-[8px] uppercase tracking-[0.08em] text-muted-foreground">{task.planTitle} · {task.status.replace(/_/g, " ")}</p>
+                  </Link>
+                ))}
+              </div>
+            )}
           </section>
           <section className="rounded-2xl border border-teal/25 bg-teal/[0.04] p-4">
             <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-teal"><ShieldCheck className="size-3.5" /> Paid before you start</p>
@@ -164,7 +187,10 @@ export function ArtisanOnboarding() {
   const [prefilled, setPrefilled] = useState(false);
 
   useEffect(() => {
-    if (existing && !prefilled) {
+    if (!existing || prefilled) return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
       setForm({
         displayName: existing.displayName,
         craftHeadline: existing.headline,
@@ -189,7 +215,10 @@ export function ArtisanOnboarding() {
         availability: existing.availability as CraftFitForm["availability"],
       });
       setPrefilled(true);
-    }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [existing, prefilled]);
 
   function set<K extends keyof CraftFitForm>(key: K, value: CraftFitForm[K]) {
@@ -380,6 +409,80 @@ export function ArtisanJobs() {
   );
 }
 
+function FeasibilityReviewCard({ requestId }: { requestId: Id<"customerRequests"> }) {
+  const reviews = useQuery(api.feasibility.forRequest, { requestId });
+  const submitReview = useMutation(api.feasibility.submit);
+  const mine = reviews?.find((review) => review.mine);
+  const [editing, setEditing] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [verdict, setVerdict] = useState<"likely_feasible" | "needs_artisan_review" | "potentially_impractical">("needs_artisan_review");
+  const [note, setNote] = useState("");
+  const [days, setDays] = useState("");
+
+  function startEditing() {
+    if (mine) {
+      setVerdict(mine.verdict as typeof verdict);
+      setNote(mine.note);
+      setDays(mine.estimatedDays ? String(mine.estimatedDays) : "");
+    }
+    setEditing(true);
+  }
+
+  async function save() {
+    setBusy(true);
+    try {
+      await submitReview({
+        requestId,
+        verdict,
+        note,
+        estimatedDays: days.trim() ? Number(days) : undefined,
+      });
+      toast.success("Feasibility review saved for the customer.");
+      setEditing(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message.replace(/^[A-Z_]+:\s*/, "") : "Could not save the review.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="rounded-2xl border border-gold/45 bg-ivory/70 p-4">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-maroon"><ShieldCheck className="size-3.5" /> Production feasibility review</p>
+          <p className="mt-1 text-[10px] leading-relaxed text-ink/55">Record what you can actually make, what needs checking, or what may not be practical. The customer sees this beside the rule-based assessment.</p>
+        </div>
+      </div>
+      {mine && !editing ? (
+        <div className="mt-3 rounded-xl border border-maroon/15 bg-card p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[10px] font-semibold text-ink">{mine.verdict === "likely_feasible" ? "Likely feasible in your workshop" : mine.verdict === "needs_artisan_review" ? "Needs further review" : "Potentially impractical as briefed"}</p>
+            <button type="button" onClick={startEditing} className="text-[9px] font-semibold text-teal underline underline-offset-2">Update review</button>
+          </div>
+          <p className="mt-1 whitespace-pre-line text-[11px] leading-relaxed text-ink/65">{mine.note}</p>
+          <p className="mt-1 text-[9px] text-muted-foreground">{mine.estimatedDays ? `Indicative hand-work: ${mine.estimatedDays} days · ` : ""}Saved {formatDate(mine.updatedAt)} · artisan-confirmed note</p>
+        </div>
+      ) : (
+        <div className="mt-3 space-y-2">
+          <div className="grid gap-2 sm:grid-cols-[1fr_110px]">
+            <label className="block"><span className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">Your assessment</span><select value={verdict} onChange={(event) => setVerdict(event.target.value as typeof verdict)} className="mt-0.5 h-8 w-full rounded-md border border-maroon/20 bg-parchment px-2 text-xs"><option value="likely_feasible">Likely feasible</option><option value="needs_artisan_review">Needs artisan review</option><option value="potentially_impractical">Potentially impractical</option></select></label>
+            <label className="block"><span className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">Hand-work days</span><input type="number" min={1} max={365} value={days} onChange={(event) => setDays(event.target.value)} placeholder="Optional" className="mt-0.5 h-8 w-full rounded-md border border-maroon/20 bg-parchment px-2 text-xs" /></label>
+          </div>
+          <label className="block"><span className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">Documented reasoning</span><textarea value={note} onChange={(event) => setNote(event.target.value)} rows={3} maxLength={1000} placeholder="e.g. The canvas can take acrylic, but the requested metallic finish needs a heat-set binder and a 3-day cure. I can make it by 12 Dec if the base pair arrives by 28 Nov." className="mt-0.5 w-full rounded-md border border-maroon/20 bg-parchment px-2 py-1.5 text-xs" /></label>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[9px] text-muted-foreground">This is a professional opinion, not a platform guarantee.</p>
+            <div className="flex gap-1.5">
+              {editing && <Button type="button" size="sm" variant="outline" className="h-7 rounded-full border-maroon/20 text-[9px]" onClick={() => setEditing(false)}>Cancel</Button>}
+              <Button type="button" size="sm" className="h-7 rounded-full bg-maroon px-3 text-[9px] text-ivory" disabled={busy || note.trim().length < 30} onClick={() => void save()}>{busy ? <Loader2 className="size-3 animate-spin" /> : "Save review"}</Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function ArtisanJobDetail() {
   const { requestId } = useParams();
   const navigate = useNavigate();
@@ -449,6 +552,8 @@ export function ArtisanJobDetail() {
               </div>
             )}
           </section>
+
+          <FeasibilityReviewCard requestId={request._id} />
 
           <section className="rounded-2xl border border-gold/40 bg-ivory/60 p-4">
             <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-maroon"><ShieldCheck className="size-3.5" /> Before you quote</p>
@@ -643,11 +748,17 @@ export function ArtisanAvailability() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    if (data?.profile && !loaded) {
-      setForm({ availability: data.profile.availability as typeof form.availability, weeklyCapacity: data.profile.weeklyCapacity ?? 3, workingHours: data.profile.workingHours ?? "" });
+    if (!data?.profile || loaded) return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setForm({ availability: data.profile!.availability as "available" | "limited" | "paused", weeklyCapacity: data.profile!.weeklyCapacity ?? 3, workingHours: data.profile!.workingHours ?? "" });
       setLoaded(true);
-    }
-  }, [data, loaded, form.availability]);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [data, loaded]);
 
   async function save() {
     setBusy(true);

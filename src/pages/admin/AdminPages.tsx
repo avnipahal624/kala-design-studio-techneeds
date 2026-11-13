@@ -7,11 +7,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { formatDate, formatDateTime, formatInr, statusLabel } from "@/lib/marketplace";
 import { useMutation, useQuery } from "convex/react";
 import {
-  BadgeCheck, ChevronLeft, FileText, Gavel, Loader2, ShieldAlert, ShieldCheck,
-  UserRound, Users, Wallet,
+  BadgeCheck, Gavel, Loader2, ShieldCheck, Wallet,
 } from "lucide-react";
 import { useState } from "react";
-import { Link, useLocation } from "react-router";
+import { Link } from "react-router";
 import { toast } from "sonner";
 
 function AdminGuard({ section }: { section: string }) {

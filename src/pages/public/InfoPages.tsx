@@ -2,8 +2,8 @@ import { Divider, Mandala } from "@/components/art/Ornaments";
 import { PublicShell } from "@/components/public/PublicShell";
 import { CRAFT_TRADITIONS } from "@/lib/marketplace";
 import {
-  ArrowRight, BadgeCheck, Banknote, Camera, CheckCircle2, FileText, Gavel, Hand,
-  Handshake, Languages, Lock, MessageSquare, PackageCheck, PenLine, ScanText,
+  ArrowRight, BadgeCheck, Banknote, Camera, CheckCircle2, FileText, Gavel,
+  Handshake, Languages, Lock, MessageSquare, PackageCheck, PenLine,
   ShieldCheck, Sparkles, Truck, Users, Wallet, XCircle,
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router";
@@ -248,7 +248,7 @@ export function WhyKalkaariPage() {
           </div>
         </div>
 
-        <div className="mt-10 rounded-2xl bg-[linear-gradient(120deg,#7b2040,#651a34_60%,#343e87)] px-6 py-10 text-center text-ivory">
+        <div className="mt-10 rounded-2xl bg-[linear-gradient(120deg,#4d2d26,#3d2a25_60%,#34483e)] px-6 py-10 text-center text-ivory">
           <p className="font-hindi-display text-sm text-saffron">आपकी कल्पना, उनकी कारीगरी</p>
           <h2 className="mt-2 font-display text-3xl font-semibold md:text-4xl">Put a real maker behind the idea.</h2>
           <div className="mt-5 flex flex-wrap justify-center gap-3">

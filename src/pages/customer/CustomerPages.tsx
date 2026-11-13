@@ -2,22 +2,26 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { ProjectWorkspace } from "@/components/marketplace/ProjectWorkspace";
 import { QuoteBreakdown } from "@/components/marketplace/QuoteBreakdown";
-import { StatusPill, StatCard, VerificationBadge } from "@/components/marketplace/Bits";
+import { assessCraftFeasibility, FeasibilityPanel } from "@/components/studio/FeasibilityPanel";
+import { CRAFTS } from "@/lib/crafts";
+import { StatusPill, StatCard } from "@/components/marketplace/Bits";
 import { UploadImages, type UploadedImage } from "@/components/marketplace/UploadImages";
 import { ArtisanCard } from "@/components/marketplace/ArtisanCard";
+import { KalaCollabPanel } from "@/components/marketplace/KalaCollabPanel";
+import { GarmentArt } from "@/components/art/garments";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Button } from "@/components/ui/button";
 import {
-  CRAFT_SKILLS, MATERIALS, PRODUCT_CAPABILITIES, REQUEST_CATEGORIES,
+  CRAFT_SKILLS, MATERIALS, REQUEST_CATEGORIES,
   feeBreakdown, formatDate, formatDateTime, formatInr, statusLabel,
 } from "@/lib/marketplace";
 import { useAuth } from "@/hooks/use-auth";
 import { demoRequest } from "@/lib/demoScenario";
 import { useAction, useMutation, useQuery } from "convex/react";
 import {
-  ArrowRight, Ban, BriefcaseBusiness, CalendarClock, CheckCircle2, ChevronLeft,
-  ChevronRight, Clock, FileText, ImagePlus, IndianRupee, Loader2, MapPin,
-  MessageSquare, Package, Plus, ReceiptText, ShieldCheck, Sparkles, Users, Wallet,
+  ArrowRight, Ban, BriefcaseBusiness, CheckCircle2, ChevronLeft,
+  ChevronRight, FileText, Handshake, ImagePlus, IndianRupee, Loader2,
+  Package, Palette, Plus, ReceiptText, ShieldCheck, Sparkles, Users, Wallet,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
@@ -39,8 +43,10 @@ export function CustomerDashboard() {
   const requests = useQuery(api.requests.listMine);
   const projects = useQuery(api.projects.mine);
   const quotes = useQuery(api.quotes.forCustomer);
-  const payments = useQuery(api.payments.myPaymentHistory);
   const profile = useQuery(api.account.profiles);
+  const designs = useQuery(api.designs.list);
+  const collaborations = useQuery(api.collaboration.mine);
+  const activeCollabs = (collaborations ?? []).filter((plan) => !["completed", "cancelled"].includes(plan.status));
 
   const myProjects = (projects ?? []).filter((project) => project.role === "customer");
   const active = myProjects.filter((p) => !["completed", "cancelled", "refunded"].includes(p.status));
@@ -123,6 +129,44 @@ export function CustomerDashboard() {
               </div>
             )}
           </section>
+          <section className="rounded-2xl border border-maroon/15 bg-card p-5">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="flex items-center gap-1.5 font-display text-lg font-semibold text-maroon"><Handshake className="size-4 text-teal" /> KalaCollab</h2>
+              <Link to="/customer/requests" className="text-[10px] font-semibold text-teal-deep">Open plans →</Link>
+            </div>
+            {collaborations === undefined ? <div className="mt-2 h-12 animate-pulse bg-parchment" /> : activeCollabs.length === 0 ? (
+              <p className="mt-2 text-[10px] leading-relaxed text-ink/50">No multi-maker plan yet. Open a brief to decompose it into craft tasks and coordinate more than one artisan.</p>
+            ) : (
+              <div className="mt-2 space-y-1.5">
+                {activeCollabs.slice(0, 3).map((plan) => (
+                  <Link key={plan._id} to={`/customer/requests/${plan.requestId}`} className="block border border-maroon/10 bg-parchment/55 p-2.5">
+                    <p className="truncate text-[11px] font-medium text-ink/70">{plan.title}</p>
+                    <p className="mt-0.5 text-[9px] uppercase tracking-[0.08em] text-muted-foreground">{plan.taskCount} tasks · {plan.acceptedCount} accepted · {plan.status.replace(/_/g, " ")}</p>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="rounded-2xl border border-maroon/15 bg-card p-5">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="flex items-center gap-1.5 font-display text-lg font-semibold text-maroon"><Palette className="size-4 text-teal" /> Saved designs</h2>
+              <Link to="/creations" className="text-[10px] font-semibold text-teal-deep">Studio →</Link>
+            </div>
+            {designs === undefined ? <div className="mt-2 h-12 animate-pulse bg-parchment" /> : designs.length === 0 ? (
+              <p className="mt-2 text-[10px] leading-relaxed text-ink/50">Your studio canvases will appear here. Every save keeps an immutable version.</p>
+            ) : (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {designs.slice(0, 2).map((design) => (
+                  <Link key={design._id} to={`/studio/${design._id}`} className="overflow-hidden border border-maroon/12 bg-parchment/45 transition hover:border-maroon/35">
+                    <div className="bg-[#efe5d6]"><GarmentArt canvas={design.canvas} className="h-auto w-full" /></div>
+                    <p className="truncate border-t border-maroon/10 px-2 py-1.5 text-[9px] font-medium text-ink/65">{design.title}</p>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+
           <section className="rounded-2xl border border-gold/35 bg-ivory/70 p-4">
             <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-maroon"><ShieldCheck className="size-3.5" /> Your protection</p>
             <p className="mt-1.5 text-[11px] leading-relaxed text-ink/60">Payments are tied to project states. A concept must be approved before production, and payout waits for your delivery confirmation.</p>
@@ -245,6 +289,8 @@ export function CustomerRequestDetail() {
             </div>
             {request.status === "open" && <button type="button" disabled={busy !== null} onClick={() => void run("close", () => close({ requestId: request._id }), "Brief closed")} className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-semibold text-vermilion"><Ban className="size-3" /> Close this brief</button>}
           </section>
+
+          <KalaCollabPanel requestId={request._id} requestStatus={request.status} />
 
           <section className="rounded-2xl border border-maroon/15 bg-card p-5">
             <div className="flex items-center justify-between">
@@ -381,6 +427,7 @@ export function CreateRequest() {
   const [analysis, setAnalysis] = useState<AnalysisState | null>(null);
   const [analysing, setAnalysing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [minDeadline] = useState(() => new Date(Date.now() + 86400000).toISOString().slice(0, 10));
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -409,6 +456,28 @@ export function CreateRequest() {
 
   const budgetFee = feeBreakdown(form.budgetInr);
   const insight = analysis?.insight ?? analysis?.fallback;
+  const inferredCraft = useMemo(
+    () =>
+      CRAFTS.find((craft) => {
+        const needle = form.craftPreference.trim().toLowerCase();
+        if (!needle) return false;
+        return craft.name.toLowerCase().includes(needle) || needle.includes(craft.name.toLowerCase());
+      }),
+    [form.craftPreference],
+  );
+  const feasibility = useMemo(
+    () =>
+      assessCraftFeasibility({
+        category: form.category,
+        craftId: inferredCraft?.id,
+        budgetInr: form.budgetInr,
+        deadline: form.deadline || undefined,
+        materialsKnown: form.materialsKnown,
+        customerSuppliesProduct: form.customerSuppliesProduct,
+        hasReference: images.length > 0,
+      }),
+    [form.category, form.budgetInr, form.deadline, form.materialsKnown, form.customerSuppliesProduct, images.length, inferredCraft?.id],
+  );
 
   async function runAnalysis() {
     setAnalysing(true);
@@ -527,11 +596,12 @@ export function CreateRequest() {
               <div><h2 className="font-display text-2xl font-semibold text-maroon">Budget, deadline and handover.</h2><p className="mt-1 text-xs text-ink/55">The budget is a ceiling. Artisans cannot quote above it, and the platform fee is disclosed in every quote.</p></div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block"><span className="text-[11px] font-semibold text-ink/70">Maximum budget (₹)</span><input type="number" min={500} max={1000000} value={form.budgetInr} onChange={(e) => set("budgetInr", Number(e.target.value))} className="mt-1 h-10 w-full rounded-lg border border-maroon/20 bg-parchment px-3 text-sm" /><span className="mt-0.5 block text-[10px] text-muted-foreground">At ₹{form.budgetInr.toLocaleString("en-IN")}, the 8% platform fee would be {formatInr(budgetFee.platformFeeInr)} if fully used.</span></label>
-                <label className="block"><span className="text-[11px] font-semibold text-ink/70">Needed by <span className="font-normal text-muted-foreground">(optional)</span></span><input type="date" value={form.deadline} min={new Date(Date.now() + 86400000).toISOString().slice(0, 10)} onChange={(e) => set("deadline", e.target.value)} className="mt-1 h-10 w-full rounded-lg border border-maroon/20 bg-parchment px-3 text-sm" /></label>
+                <label className="block"><span className="text-[11px] font-semibold text-ink/70">Needed by <span className="font-normal text-muted-foreground">(optional)</span></span><input type="date" value={form.deadline} min={minDeadline} onChange={(e) => set("deadline", e.target.value)} className="mt-1 h-10 w-full rounded-lg border border-maroon/20 bg-parchment px-3 text-sm" /></label>
                 <label className="block"><span className="text-[11px] font-semibold text-ink/70">Your city</span><input value={form.city} onChange={(e) => set("city", e.target.value)} placeholder="e.g. Pune" className="mt-1 h-10 w-full rounded-lg border border-maroon/20 bg-parchment px-3 text-sm" /></label>
                 <label className="block"><span className="text-[11px] font-semibold text-ink/70">Handover</span><select value={form.fulfilment} onChange={(e) => set("fulfilment", e.target.value as "shipping" | "local_handoff")} className="mt-1 h-10 w-full rounded-lg border border-maroon/20 bg-parchment px-2.5 text-sm"><option value="shipping">Shipping</option><option value="local_handoff">Local handoff</option></select></label>
               </div>
               <div className="rounded-xl border border-gold/40 bg-ivory/60 p-3 text-[11px] leading-relaxed text-ink/60"><strong className="text-maroon">What happens after you publish:</strong> matched artisans can quote. Quotes include making, materials, time and revisions. You choose — no obligation to accept any quote. You can invite artisans from the directory.</div>
+              <FeasibilityPanel result={feasibility} />
             </div>
           )}
 

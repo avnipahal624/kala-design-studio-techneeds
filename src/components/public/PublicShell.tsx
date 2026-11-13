@@ -11,9 +11,9 @@ const LINKS = [
   { to: "/how-it-works", label: "How it works" },
   { to: "/explore-artisans", label: "Explore artisans" },
   { to: "/crafts", label: "Crafts" },
+  { to: "/kalacollab", label: "KalaCollab" },
   { to: "/trust-and-safety", label: "Trust & safety" },
   { to: "/for-artisans", label: "For artisans" },
-  { to: "/why-kalkaari", label: "Why KALकारी?" },
 ];
 
 export function PublicShell({
@@ -30,10 +30,10 @@ export function PublicShell({
 
   return (
     <div className={cn("min-h-screen bg-parchment text-ink", className)}>
-      <header className="sticky top-0 z-40 border-b border-gold/25 bg-parchment/92 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1320px] items-center justify-between gap-4 px-4 py-3 md:px-8">
+      <header className="sticky top-0 z-40 border-b border-maroon/10 bg-parchment/94 backdrop-blur-md">
+        <div className="mx-auto flex max-w-[1360px] items-center justify-between gap-4 px-4 py-3.5 md:px-8">
           <BrandLockup size="md" />
-          <nav className="hidden items-center gap-5 text-[12px] font-medium text-ink/65 lg:flex" aria-label="Main">
+          <nav className="hidden items-center gap-5 text-[10px] font-medium uppercase tracking-[0.08em] text-ink/58 lg:flex" aria-label="Main">
             {LINKS.map((link) => (
               <Link
                 key={link.to}
@@ -68,9 +68,9 @@ export function PublicShell({
                 </Link>
                 <Link
                   to="/auth?returnTo=%2Fcustomer%2Fcreate-request"
-                  className="inline-flex items-center gap-1.5 rounded-full bg-maroon px-4 py-2 text-xs font-semibold text-ivory transition hover:bg-maroon-deep"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-maroon px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-ivory transition hover:bg-maroon-deep"
                 >
-                  Start Customising <ArrowRight className="size-3.5" />
+                  Start creating <ArrowRight className="size-3.5" />
                 </Link>
               </>
             )}
@@ -107,7 +107,7 @@ export function PublicShell({
             </Link>
           </nav>
         )}
-        <VineBorder className="h-2 w-full opacity-60" />
+        <VineBorder className="h-2 w-full opacity-45" />
       </header>
 
       <main>{children}</main>
@@ -120,8 +120,8 @@ export function PublicShell({
               An artisan-first customisation marketplace. Share the idea, choose the maker, and keep
               every step documented. AI connects; artisans create.
             </p>
-            <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.16em] text-teal">
-              Your Imagination. Their Craftsmanship.
+            <p className="mt-3 text-[9px] font-medium uppercase tracking-[0.16em] text-teal">
+              Crafted by Heritage. Powered by Imagination.
             </p>
           </div>
           <div>
@@ -129,6 +129,7 @@ export function PublicShell({
             <ul className="mt-2 space-y-1.5 text-[11px] text-ink/60">
               <li><Link to="/how-it-works" className="hover:text-maroon">How customisation works</Link></li>
               <li><Link to="/explore-artisans" className="hover:text-maroon">Explore artisans</Link></li>
+              <li><Link to="/kalacollab" className="hover:text-maroon">KalaCollab</Link></li>
               <li><Link to="/customer/create-request" className="hover:text-maroon">Start a brief</Link></li>
               <li><Link to="/trust-and-safety" className="hover:text-maroon">Payment protection</Link></li>
             </ul>
