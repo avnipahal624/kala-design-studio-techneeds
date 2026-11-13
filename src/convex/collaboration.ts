@@ -15,6 +15,7 @@ type TaskDraft = {
   skill: string;
   brief: string;
   dependsOnPosition?: number;
+  dependsOnPositions?: number[];
   weight: number;
 };
 
@@ -118,18 +119,23 @@ export function decomposeRequest(request: Doc<"customerRequests">): TaskDraft[] 
     });
   }
 
-  const constructionEnd = construction.length;
-  const surfaceEnd = constructionEnd + surface.length;
+  const constructionPositions = construction.map((_, index) => index + 1);
+  const surfacePositions = surface.map((_, index) => construction.length + index + 1);
   return ordered.slice(0, MAX_TASKS).map((task, index) => {
     const phase = phaseForSkill(task.skill);
-    let dependsOnPosition: number | undefined;
-    if (phase === "surface" && constructionEnd > 0) dependsOnPosition = 1;
-    if (phase === "finishing" && surfaceEnd > 0) dependsOnPosition = Math.min(surfaceEnd, MAX_TASKS);
-    else if (phase === "finishing" && constructionEnd > 0) dependsOnPosition = 1;
+    const position = index + 1;
+    let dependsOnPositions: number[] = [];
+    if (phase === "surface") dependsOnPositions = constructionPositions;
+    if (phase === "finishing") dependsOnPositions = [...constructionPositions, ...surfacePositions];
+    // A finishing task must wait for every construction and surface task, not
+    // merely the last one. Dependencies are filtered to tasks that exist after
+    // the MAX_TASKS cap.
+    dependsOnPositions = dependsOnPositions.filter((dependency) => dependency < position);
     return {
       ...task,
-      position: index + 1,
-      dependsOnPosition,
+      position,
+      dependsOnPosition: dependsOnPositions[dependsOnPositions.length - 1],
+      dependsOnPositions: dependsOnPositions.length > 0 ? dependsOnPositions : undefined,
     };
   });
 }
@@ -223,6 +229,7 @@ async function buildPlan(ctx: MutationCtx, request: Doc<"customerRequests">) {
       skill: task.skill,
       brief: task.brief,
       dependsOnPosition: task.dependsOnPosition,
+      dependsOnPositions: task.dependsOnPositions,
       artisanId: match?.profile.userId,
       matchScore: match?.score,
       matchReasons: match?.reasons.slice(0, 4) ?? [],
@@ -318,12 +325,21 @@ export const invitations = query({
       const request = await ctx.db.get(plan.requestId);
       if (!request) continue;
       const customer = await ctx.db.get(plan.customerId);
-      const dependency = task.dependsOnPosition
-        ? await ctx.db
-            .query("collaborationTasks")
-            .withIndex("by_plan_position", (q) => q.eq("planId", task.planId).eq("position", task.dependsOnPosition!))
-            .unique()
-        : null;
+      const dependencyPositions = task.dependsOnPositions?.length
+        ? task.dependsOnPositions
+        : task.dependsOnPosition
+          ? [task.dependsOnPosition]
+          : [];
+      const dependencies = (
+        await Promise.all(
+          dependencyPositions.map((position) =>
+            ctx.db
+              .query("collaborationTasks")
+              .withIndex("by_plan_position", (q) => q.eq("planId", task.planId).eq("position", position))
+              .unique(),
+          ),
+        )
+      ).filter((row): row is Doc<"collaborationTasks"> => Boolean(row));
       rows.push({
         ...task,
         planStatus: plan.status,
@@ -331,8 +347,13 @@ export const invitations = query({
         requestTitle: request.title,
         requestCategory: request.category,
         customerName: (customer?.name ?? "Customer").trim().split(/\s+/)[0],
-        dependencyTitle: dependency?.title ?? null,
-        dependencyStatus: dependency?.status ?? null,
+        dependencyTitle: dependencies.map((dependency) => dependency.title).join(" + ") || null,
+        dependencyStatus:
+          dependencies.length === 0
+            ? null
+            : dependencies.every((dependency) => dependency.status === "approved")
+              ? "approved"
+              : "pending",
       });
     }
     return rows;
@@ -429,6 +450,7 @@ export const assignTask = mutation({
       craftTags: tags.flatMap((item) => item.craftTags),
     });
     if (!match.eligible) throw new Error("INVALID: this artisan is not eligible for the task brief.");
+    const previousArtisanId = task.artisanId;
     await ctx.db.patch(task._id, {
       artisanId: args.artisanId,
       matchScore: match.score,
@@ -438,6 +460,19 @@ export const assignTask = mutation({
       artisanNote: undefined,
       updatedAt: Date.now(),
     });
+    // Reassignment invalidates the previous invitation. Return the plan to a
+    // draft so the customer must explicitly re-send the updated proposal.
+    if (plan.status === "awaiting_artisans") {
+      await ctx.db.patch(plan._id, { status: "draft", updatedAt: Date.now() });
+    }
+    if (previousArtisanId && previousArtisanId !== args.artisanId) {
+      await notifyUser(ctx, previousArtisanId, {
+        type: "collab.reassigned",
+        title: "KalaCollab task reassigned",
+        body: `${task.title} has been assigned to another maker. You no longer need to respond.`,
+        href: "/artisan/collaborations",
+      });
+    }
     return { assigned: true, score: match.score };
   },
 });
@@ -501,9 +536,12 @@ export const rebuildPlan = mutation({
         skill: task.skill,
         brief: task.brief,
         dependsOnPosition: task.dependsOnPosition,
+        dependsOnPositions: task.dependsOnPositions,
         weight: 1,
       };
-      const match = await bestArtisan(ctx, request, draft, request.budgetInr, used);
+      const excluded = new Set(used);
+      if (task.status === "declined" && task.artisanId) excluded.add(task.artisanId);
+      const match = await bestArtisan(ctx, request, draft, request.budgetInr, excluded);
       if (match) used.add(match.profile.userId);
       await ctx.db.patch(task._id, {
         artisanId: match?.profile.userId,
@@ -584,10 +622,22 @@ export const respondTask = mutation({
     const plan = await ctx.db.get(task.planId);
     if (!plan || plan.status !== "awaiting_artisans") throw new Error("INVALID: this invitation is no longer open.");
     if (task.status !== "invited") throw new Error("INVALID: this task has already been answered.");
+    const currentTasks = await ctx.db
+      .query("collaborationTasks")
+      .withIndex("by_plan", (q) => q.eq("planId", plan._id))
+      .take(MAX_TASKS);
     if (args.accept) {
       const amount = Math.round(args.quotedAmountInr ?? 0);
       if (amount < 1 || amount > 1_000_000) {
         throw new Error("INVALID: add your amount for this task.");
+      }
+      const alreadyAccepted = currentTasks
+        .filter((row) => row.status === "accepted")
+        .reduce((sum, row) => sum + (row.quotedAmountInr ?? 0), 0);
+      if (alreadyAccepted + amount > plan.combinedBudgetInr) {
+        throw new Error(
+          `INVALID: accepting this amount would exceed the customer's ₹${plan.combinedBudgetInr.toLocaleString("en-IN")} plan budget.`,
+        );
       }
       await ctx.db.patch(task._id, {
         status: "accepted",
@@ -636,6 +686,12 @@ export const approvePlan = mutation({
     if (!tasks.every((task) => task.status === "accepted")) {
       throw new Error("INVALID: the plan is not fully accepted.");
     }
+    const quotedTotal = tasks.reduce((sum, task) => sum + (task.quotedAmountInr ?? 0), 0);
+    if (quotedTotal > plan.combinedBudgetInr) {
+      throw new Error(
+        `INVALID: the accepted task amounts total ₹${quotedTotal.toLocaleString("en-IN")}, above the ₹${plan.combinedBudgetInr.toLocaleString("en-IN")} plan budget.`,
+      );
+    }
     await ctx.db.patch(plan._id, { status: "approved", approvedAt: Date.now(), updatedAt: Date.now() });
     for (const task of tasks) {
       if (task.artisanId) {
@@ -670,14 +726,24 @@ export const startTask = mutation({
       throw new Error("INVALID: the collaboration plan is not approved yet.");
     }
     if (task.status !== "accepted") throw new Error("INVALID: this task cannot start.");
-    if (task.dependsOnPosition) {
-      const dependency = await ctx.db
-        .query("collaborationTasks")
-        .withIndex("by_plan_position", (q) => q.eq("planId", task.planId).eq("position", task.dependsOnPosition!))
-        .unique();
-      if (dependency && dependency.status !== "approved") {
-        throw new Error(`DEPENDENCY: wait for “${dependency.title}” to be approved first.`);
-      }
+    const dependencyPositions = task.dependsOnPositions?.length
+      ? task.dependsOnPositions
+      : task.dependsOnPosition
+        ? [task.dependsOnPosition]
+        : [];
+    const dependencies = (
+      await Promise.all(
+        dependencyPositions.map((position) =>
+          ctx.db
+            .query("collaborationTasks")
+            .withIndex("by_plan_position", (q) => q.eq("planId", task.planId).eq("position", position))
+            .unique(),
+        ),
+      )
+    ).filter((row): row is Doc<"collaborationTasks"> => Boolean(row));
+    const blocked = dependencies.find((dependency) => dependency.status !== "approved");
+    if (blocked) {
+      throw new Error(`DEPENDENCY: wait for “${blocked.title}” to be approved first.`);
     }
     await ctx.db.patch(task._id, { status: "in_progress", startedAt: Date.now(), updatedAt: Date.now() });
     if (plan.status === "approved") await ctx.db.patch(plan._id, { status: "in_production", updatedAt: Date.now() });
@@ -760,7 +826,28 @@ export const cancelPlan = mutation({
     const plan = await ctx.db.get(args.planId);
     if (!plan || plan.customerId !== user._id) throw new Error("NOT_FOUND: plan not found.");
     if (["completed", "cancelled"].includes(plan.status)) throw new Error("INVALID: this plan is already closed.");
+    const tasks = await ctx.db
+      .query("collaborationTasks")
+      .withIndex("by_plan", (q) => q.eq("planId", plan._id))
+      .take(MAX_TASKS);
     await ctx.db.patch(plan._id, { status: "cancelled", updatedAt: Date.now() });
+    for (const task of tasks) {
+      if (!task.artisanId || !["invited", "accepted", "in_progress"].includes(task.status)) continue;
+      await notifyUser(ctx, task.artisanId, {
+        type: "collab.cancelled",
+        title: "KalaCollab plan cancelled",
+        body: `${plan.title} · ${task.title} has been cancelled by the customer. Do not continue this task.`,
+        href: "/artisan/collaborations",
+      });
+    }
+    await recordAudit(ctx, {
+      actorId: user._id,
+      actorRole: "customer",
+      action: "collab.cancelled",
+      subjectType: "collaborationPlans",
+      subjectId: String(plan._id),
+      detail: `${tasks.length} tasks`,
+    });
     return { cancelled: true };
   },
 });

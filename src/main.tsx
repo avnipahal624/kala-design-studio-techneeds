@@ -121,7 +121,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/why-kalkaari" element={<WhyKalkaariPage />} />
               <Route path="/kala-rights" element={<KalaRightsPage />} />
 
-              <Route path="/auth" element={<AuthPage redirectAfterAuth="/customer/dashboard" />} />
+              <Route path="/auth" element={<AuthPage />} />
 
               <Route path="/customer/dashboard" element={<Protected title="Sign in to your workspace" description="Your briefs, quotes and projects are private to your account."><CustomerDashboard /></Protected>} />
               <Route path="/customer/create-request" element={<Protected title="Sign in to post a brief" description="A brief connects your idea to matched artisans. It is free to publish."><CreateRequest /></Protected>} />

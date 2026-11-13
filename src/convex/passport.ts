@@ -79,8 +79,10 @@ export const ensure = mutation({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
     const user = await requireMarketplaceUser(ctx);
-    const { project, isCustomer, isArtisan, isAdmin } = await requireProjectAccess(ctx, args.projectId, user);
-    if (!isCustomer && !isArtisan && !isAdmin) throw new Error("FORBIDDEN: not a participant.");
+    const { project, isCustomer } = await requireProjectAccess(ctx, args.projectId, user);
+    // The passport belongs to the customer. Artisans can view it after the
+    // customer creates it, but cannot create or publish the customer's record.
+    if (!isCustomer) throw new Error("FORBIDDEN: only the customer can create this KalaPassport.");
     if (project.status !== "completed") {
       throw new Error("INVALID: a KalaPassport becomes available when the project is completed.");
     }
@@ -102,7 +104,7 @@ export const ensure = mutation({
     if (!created) throw new Error("NOT_FOUND: passport could not be created.");
     await recordAudit(ctx, {
       actorId: user._id,
-      actorRole: isArtisan ? "artisan" : "customer",
+      actorRole: "customer",
       action: "passport.created",
       subjectType: "kalaPassports",
       subjectId: String(passportId),
@@ -146,7 +148,10 @@ export const setPublic = mutation({
   args: { projectId: v.id("projects"), enabled: v.boolean() },
   handler: async (ctx, args) => {
     const user = await requireMarketplaceUser(ctx);
-    const { project } = await requireProjectAccess(ctx, args.projectId, user);
+    const { project, isCustomer } = await requireProjectAccess(ctx, args.projectId, user);
+    if (!isCustomer) {
+      throw new Error("FORBIDDEN: only the customer controls public sharing for this passport.");
+    }
     if (project.status !== "completed") {
       throw new Error("INVALID: sharing opens when the project is completed.");
     }
@@ -158,7 +163,7 @@ export const setPublic = mutation({
     await ctx.db.patch(passport._id, { publicEnabled: args.enabled, updatedAt: Date.now() });
     await recordAudit(ctx, {
       actorId: user._id,
-      actorRole: user._id === project.artisanId ? "artisan" : "customer",
+      actorRole: "customer",
       action: args.enabled ? "passport.shared" : "passport.unshared",
       subjectType: "kalaPassports",
       subjectId: String(passport._id),

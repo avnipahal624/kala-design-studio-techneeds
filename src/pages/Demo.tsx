@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
+import { QRCodeSVG } from "qrcode.react";
 
 const SCREENS = [
   { label: "Homepage", short: "Imagine" },
@@ -42,6 +43,14 @@ const SCREENS = [
   { label: "Matching", short: "Match" },
   { label: "KalaJobs", short: "Quote" },
   { label: "KalaProof", short: "Track" },
+  { label: "KalaCollab", short: "Collaborate" },
+  { label: "KalaPassport", short: "Passport" },
+];
+
+const DEMO_COLLAB = [
+  { number: "01", role: "Tailor", task: "Garment construction", maker: "Sample maker · tailoring", amount: "₹2,100", dependency: "Starts first", status: "Accepted" },
+  { number: "02", role: "Embroidery artisan", task: "Kantha surface work", maker: "Sample maker · embroidery", amount: "₹1,900", dependency: "After construction", status: "Accepted" },
+  { number: "03", role: "Painting artisan", task: "Finishing details", maker: "Sample maker · hand painting", amount: "₹1,300", dependency: "After surface work", status: "Accepted" },
 ];
 
 const DEMO_NOTE = "Preloaded demonstration data — not a real customer, artisan, order or payment.";
@@ -75,16 +84,16 @@ function ScreenOne({ next }: { next: () => void }) {
   return (
     <div className="grid items-center gap-8 lg:grid-cols-[1.02fr_0.98fr]">
       <div>
-        <DemoBadge>InnoVortex PitchStorm · 30-second walkthrough</DemoBadge>
+        <DemoBadge>Judge walkthrough · 3–4 minutes</DemoBadge>
         <h1 className="mt-4 max-w-[13ch] font-display text-[2.5rem] font-semibold leading-[1.02] tracking-tight text-maroon sm:text-5xl lg:text-6xl">
           Your Imagination.
           <br />
           <span className="text-vermilion">Their Craftsmanship.</span>
         </h1>
         <p className="mt-5 max-w-[54ch] text-sm leading-relaxed text-ink/65 md:text-base">
-          One customer idea. One skilled Indian artisan. AI connects the two — but the hands, the
-          concept and the craft are human. Follow a real workflow below without signing in, typing or
-          touching a payment screen.
+          One customer idea. One skilled Indian artisan. Rule-based CraftFit connects the two — the
+          hands, the concept and the craft stay human. Follow the workflow below without signing in,
+          typing or touching a payment screen.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Button onClick={next} className="rounded-full bg-maroon px-6 py-6 text-sm font-semibold text-ivory hover:bg-maroon-deep">
@@ -517,7 +526,7 @@ function ScreenFive() {
         <aside className="space-y-4">
           <section className="relative overflow-hidden rounded-2xl border border-maroon/20 bg-[linear-gradient(120deg,#7b2040,#651a34,#4a1738)] p-5 text-ivory">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-saffron">The promise</p>
-            <p className="mt-2 font-display text-2xl font-semibold leading-tight">AI connects.<br />Artisans create.</p>
+            <p className="mt-2 font-display text-2xl font-semibold leading-tight">CraftFit connects.<br />Artisans create.</p>
             <ul className="mt-3 space-y-2 text-[11px] leading-relaxed text-ivory/75">
               <li className="flex gap-1.5"><BadgeCheck className="mt-0.5 size-3.5 shrink-0 text-saffron" /> Concepts are made and uploaded by the artisan.</li>
               <li className="flex gap-1.5"><Hammer className="mt-0.5 size-3.5 shrink-0 text-saffron" /> Production starts only after payment and concept approval.</li>
@@ -554,6 +563,91 @@ function ScreenFive() {
   );
 }
 
+function ScreenSix() {
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <section className="overflow-hidden rounded-2xl border border-maroon/15 bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-maroon/10 px-5 py-3">
+          <div className="flex items-center gap-2"><DemoBadge>KalaCollab · illustrative plan</DemoBadge><span className="rounded-full border border-teal/25 bg-teal/[0.06] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-teal">Draft proposal</span></div>
+          <span className="text-[10px] text-muted-foreground">3 makers · 3 tasks</span>
+        </div>
+        <div className="p-5">
+          <h2 className="font-display text-3xl font-semibold leading-none text-maroon">The Heirloom Jacket</h2>
+          <p className="mt-2 text-[11px] leading-relaxed text-ink/55">A tailored jacket, Kantha embroidery and a hand-painted finishing panel, coordinated as one plan. Each maker accepts their own scope before the customer approves the whole piece.</p>
+          <div className="mt-5 space-y-2">
+            {DEMO_COLLAB.map((task) => (
+              <article key={task.number} className="grid gap-2 border border-maroon/12 bg-[#fcf9f2] p-3 sm:grid-cols-[28px_1fr_auto]">
+                <span className="font-display text-sm italic text-maroon/40">{task.number}</span>
+                <div><p className="text-[11px] font-semibold text-ink/75">{task.role} · {task.task}</p><p className="mt-0.5 text-[9px] text-ink/45">{task.maker} · {task.dependency}</p><p className="mt-1 text-[9px] text-teal">Amount proposed by the maker: {task.amount}</p></div>
+                <span className="self-start border border-emerald/30 bg-emerald/[0.06] px-2 py-1 text-center text-[8px] font-semibold uppercase tracking-wide text-emerald">{task.status}</span>
+              </article>
+            ))}
+          </div>
+          <div className="mt-4 flex flex-wrap items-end justify-between gap-3 border-t border-maroon/12 pt-4">
+            <div><p className="text-[9px] uppercase tracking-wide text-muted-foreground">Combined proposed budget</p><p className="font-display text-2xl font-semibold text-maroon">₹5,300</p></div>
+            <p className="max-w-[32ch] text-right text-[9px] leading-relaxed text-muted-foreground">3/3 artisans accepted. Customer approval is still required. No funds are split or transferred.</p>
+          </div>
+        </div>
+      </section>
+      <aside className="space-y-4">
+        <section className="rounded-2xl border border-teal/25 bg-teal/[0.04] p-5">
+          <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-teal"><Users className="size-3.5" /> Human approval, not auto-assignment</p>
+          <ul className="mt-3 space-y-2 text-[11px] leading-relaxed text-ink/60">
+            <li>· A task match is an invitation. Each maker accepts or declines.</li>
+            <li>· The customer approves the complete plan and its total.</li>
+            <li>· Dependencies are enforced: finishing waits for surface work.</li>
+            <li>· Progress notes and completion approvals stay with the task.</li>
+          </ul>
+        </section>
+        <section className="rounded-2xl border border-gold/40 bg-ivory/70 p-4">
+          <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-maroon"><Lock className="size-3.5" /> Payment boundary</p>
+          <p className="mt-2 text-[11px] leading-relaxed text-ink/60">KalaCollab coordinates scope and approvals. It does not initiate payouts. Task amounts remain proposals until a separate, verified payment arrangement exists.</p>
+        </section>
+        <div className="grid gap-2">
+          <Link to="/kalacollab" className="inline-flex items-center justify-center gap-1.5 rounded-full bg-maroon px-4 py-2.5 text-xs font-semibold text-ivory">How KalaCollab works <ChevronRight className="size-3.5" /></Link>
+          <Link to="/customer/create-request" className="inline-flex items-center justify-center gap-1.5 rounded-full border border-teal/35 bg-card px-4 py-2.5 text-xs font-semibold text-teal-deep">Start a real brief <ChevronRight className="size-3.5" /></Link>
+        </div>
+        <p className="text-[9px] leading-relaxed text-muted-foreground">{DEMO_NOTE}</p>
+      </aside>
+    </div>
+  );
+}
+
+function ScreenSeven() {
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <article className="relative overflow-hidden border border-maroon/30 bg-[#fbf6eb] p-5 shadow-[0_25px_60px_-45px_rgba(45,25,19,0.5)] sm:p-8">
+        <div className="pointer-events-none absolute inset-3 border border-gold/35" />
+        <div className="relative">
+          <div className="flex items-start justify-between gap-3"><div><p className="font-display text-lg font-semibold text-maroon">KALकारी</p><p className="mt-1 text-[8px] uppercase tracking-[0.16em] text-teal">Digital product passport · demo</p></div><p className="text-right text-[8px] uppercase tracking-wide text-ink/35">KalaProof record</p></div>
+          <div className="mt-8 text-center"><p className="text-[8px] uppercase tracking-[0.16em] text-maroon/50">The recorded story of</p><h2 className="mt-2 font-display text-4xl font-medium leading-none text-ink">The Heirloom Jacket</h2><p className="mt-2 text-[9px] uppercase tracking-[0.14em] text-teal">Clothing · Kantha embroidery</p></div>
+          <div className="mt-7 grid gap-5 sm:grid-cols-2">
+            <div><p className="text-[8px] uppercase tracking-[0.12em] text-muted-foreground">The hands</p><p className="mt-2 text-[11px] font-semibold text-ink/75">Sample tailor</p><p className="text-[9px] text-ink/45">Delhi · garment construction</p><p className="mt-2 text-[11px] font-semibold text-ink/75">Sample embroidery artisan</p><p className="text-[9px] text-ink/45">Lucknow · Kantha surface work</p><p className="mt-2 text-[11px] font-semibold text-ink/75">Sample painting artisan</p><p className="text-[9px] text-ink/45">Jaipur · hand-painted finishing</p></div>
+            <div><p className="text-[8px] uppercase tracking-[0.12em] text-muted-foreground">Recorded milestones</p><ol className="mt-2 space-y-2">{["Plan approved by customer", "Construction approved", "Surface work approved", "Finishing approved", "Project completed"].map((item) => <li key={item} className="flex items-start gap-1.5 text-[9px] leading-snug text-ink/60"><CheckCircle2 className="mt-0.5 size-3 shrink-0 text-emerald" />{item}</li>)}</ol></div>
+          </div>
+          <div className="mt-7 flex items-end justify-between gap-3 border-t border-maroon/15 pt-4"><p className="max-w-[44ch] text-[8px] leading-relaxed text-ink/45"><ShieldCheck className="mr-1 inline size-3" />Recorded from KalaProof. Not an independent authenticity certificate, appraisal or guarantee.</p><div className="border border-maroon/15 bg-[#f7f2e8] p-1.5"><QRCodeSVG value="https://kalakari.freebuff.app/" size={64} bgColor="#f7f2e8" fgColor="#28231f" level="M" /></div></div>
+        </div>
+      </article>
+      <aside className="space-y-4">
+        <section className="rounded-2xl border border-teal/25 bg-teal/[0.04] p-5">
+          <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-teal"><ShieldCheck className="size-3.5" /> Provenance with a privacy boundary</p>
+          <ul className="mt-3 space-y-2 text-[11px] leading-relaxed text-ink/60">
+            <li>· The customer owns the record and explicitly turns public sharing on.</li>
+            <li>· Artisans are credited by name, craft and city.</li>
+            <li>· Conversations, addresses, payments and private files are excluded.</li>
+            <li>· The QR opens the public summary only when sharing is enabled.</li>
+          </ul>
+        </section>
+        <div className="grid gap-2">
+          <Link to="/explore-artisans" className="inline-flex items-center justify-center gap-1.5 rounded-full bg-maroon px-4 py-2.5 text-xs font-semibold text-ivory">Explore the makers <ChevronRight className="size-3.5" /></Link>
+          <Link to="/" className="inline-flex items-center justify-center gap-1.5 rounded-full border border-maroon/20 px-4 py-2.5 text-xs font-semibold text-maroon">Back to KALकारी <ChevronRight className="size-3.5" /></Link>
+        </div>
+        <p className="text-[9px] leading-relaxed text-muted-foreground">{DEMO_NOTE} The passport illustration is not a real completed order.</p>
+      </aside>
+    </div>
+  );
+}
+
 export default function Demo() {
   const [screen, setScreen] = useState(0);
 
@@ -572,7 +666,7 @@ export default function Demo() {
         <div className="border-b border-gold/25 bg-[#fcf1de]">
           <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-8">
             <div className="flex items-center gap-2">
-              <DemoBadge>Judge demo · 30 seconds</DemoBadge>
+              <DemoBadge>Judge demo · 3–4 minutes</DemoBadge>
               <span className="hidden text-[10px] text-muted-foreground sm:inline">No sign-in · no typing · no payment</span>
             </div>
             <div className="flex flex-wrap items-center gap-1">
@@ -601,6 +695,8 @@ export default function Demo() {
           {screen === 2 && <ScreenThree next={() => setScreen(3)} />}
           {screen === 3 && <ScreenFour next={() => setScreen(4)} />}
           {screen === 4 && <ScreenFive />}
+          {screen === 5 && <ScreenSix />}
+          {screen === 6 && <ScreenSeven />}
         </div>
 
         <div className="sticky bottom-0 border-t border-gold/25 bg-parchment/95 backdrop-blur">

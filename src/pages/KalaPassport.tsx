@@ -243,6 +243,7 @@ export function KalaPassportPrivate() {
   const [busy, setBusy] = useState<string | null>(null);
 
   const role = detail?.viewer.role === "artisan" ? "artisan" : detail?.viewer.role === "admin" ? "admin" : user?.role === "artisan" ? "artisan" : "customer";
+  const canManage = detail?.viewer.role === "customer";
   const project = detail?.project;
   const origin = typeof window === "undefined" ? "" : window.location.origin;
   const shareUrl = passport ? `${origin}/passport/${passport.passport.shareToken}` : "";
@@ -321,9 +322,15 @@ export function KalaPassportPrivate() {
                 </p>
               </div>
               {project?.status === "completed" ? (
-                <Button className="mt-5 rounded-full bg-maroon px-6 text-ivory hover:bg-maroon-deep" disabled={busy !== null} onClick={() => void create()}>
-                  {busy === "create" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />} Create my KalaPassport
-                </Button>
+                canManage ? (
+                  <Button className="mt-5 rounded-full bg-maroon px-6 text-ivory hover:bg-maroon-deep" disabled={busy !== null} onClick={() => void create()}>
+                    {busy === "create" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />} Create my KalaPassport
+                  </Button>
+                ) : (
+                  <p className="mt-5 border border-dashed border-maroon/20 bg-parchment px-4 py-3 text-[10px] text-muted-foreground">
+                    The customer creates and controls this passport. You can view it here once it exists.
+                  </p>
+                )
               ) : (
                 <p className="mt-5 border border-dashed border-maroon/20 bg-parchment px-4 py-3 text-[10px] text-muted-foreground">
                   This project is currently <span className="font-semibold text-maroon">{project?.status.replace(/_/g, " ")}</span>. The passport opens after completion.
@@ -349,10 +356,14 @@ export function KalaPassportPrivate() {
                       </button>
                     )}
                   </div>
-                  <Button size="sm" variant="outline" className="rounded-full border-maroon/25 text-[10px] text-maroon" disabled={busy !== null} onClick={() => void toggle()}>
-                    {busy === "share" ? <Loader2 className="size-3.5 animate-spin" /> : passport.passport.publicEnabled ? <LockKeyhole className="size-3.5" /> : <Globe2 className="size-3.5" />}
-                    {passport.passport.publicEnabled ? "Turn off public sharing" : "Share public summary"}
-                  </Button>
+                  {canManage ? (
+                    <Button size="sm" variant="outline" className="rounded-full border-maroon/25 text-[10px] text-maroon" disabled={busy !== null} onClick={() => void toggle()}>
+                      {busy === "share" ? <Loader2 className="size-3.5 animate-spin" /> : passport.passport.publicEnabled ? <LockKeyhole className="size-3.5" /> : <Globe2 className="size-3.5" />}
+                      {passport.passport.publicEnabled ? "Turn off public sharing" : "Share public summary"}
+                    </Button>
+                  ) : (
+                    <p className="max-w-[300px] text-[9px] leading-relaxed text-muted-foreground">The customer controls whether this passport is public. Your view remains private to the project.</p>
+                  )}
                 </>
               }
             />
@@ -368,7 +379,7 @@ export function KalaPassportPrivate() {
                 <p className="flex items-center gap-1.5 label-caps text-[8px] text-teal"><Check className="size-3" /> Privacy-safe by design</p>
                 <p className="mt-1.5 text-[10px] leading-relaxed text-ink/55">
                   The public version excludes messages, addresses, payment references, private files
-                  and customer identity. Turn it off at any time.
+                  and customer identity. The customer controls sharing and can turn it off at any time.
                 </p>
               </div>
             </div>

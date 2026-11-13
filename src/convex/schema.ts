@@ -501,6 +501,7 @@ const schema = defineSchema(
       skill: v.string(),
       brief: v.string(),
       dependsOnPosition: v.optional(v.number()),
+      dependsOnPositions: v.optional(v.array(v.number())),
       artisanId: v.optional(v.id("users")),
       matchScore: v.optional(v.number()),
       matchReasons: v.array(v.string()),

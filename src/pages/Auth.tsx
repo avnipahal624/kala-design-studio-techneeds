@@ -20,10 +20,11 @@ function resolveRedirectAfterAuth(returnTo: string | null, fallback = "/customer
 }
 
 function Auth({ redirectAfterAuth }: AuthProps = {}) {
-  const { isLoading: authLoading, isAuthenticated, signIn } = useAuth();
+  const { isLoading: authLoading, isAuthenticated, signIn, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirect = resolveRedirectAfterAuth(searchParams.get("returnTo"), redirectAfterAuth);
+  const roleFallback = user?.role === "admin" ? "/admin/dashboard" : user?.role === "artisan" ? "/artisan/dashboard" : "/customer/dashboard";
+  const redirect = resolveRedirectAfterAuth(searchParams.get("returnTo"), redirectAfterAuth ?? roleFallback);
   const [step, setStep] = useState<"signIn" | { email: string }>("signIn");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);

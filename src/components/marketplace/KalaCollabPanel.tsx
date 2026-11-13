@@ -182,6 +182,7 @@ export function KalaCollabPanel({
   const unassigned = tasks.filter((task) => !task.artisanId).length;
   const declined = tasks.some((task) => task.status === "declined");
   const plannedTotal = tasks.reduce((sum, task) => sum + (task.quotedAmountInr ?? task.plannedAmountInr), 0);
+  const overBudget = plannedTotal > plan.combinedBudgetInr;
 
   return (
     <section className="overflow-hidden border border-maroon/15 bg-[#fcf9f2]">
@@ -192,6 +193,11 @@ export function KalaCollabPanel({
           <p className="mt-1 text-[10px] text-ink/48">
             {tasks.length} tasks · {accepted} accepted · {approved} approved · {formatInr(plannedTotal)} planned
           </p>
+          {overBudget && (
+            <p className="mt-1 flex items-center gap-1 text-[9px] font-medium text-vermilion">
+              <CircleAlert className="size-3" /> Above the {formatInr(plan.combinedBudgetInr)} brief ceiling. Reassign or ask makers to revise before approval.
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="border border-maroon/18 bg-parchment px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.08em] text-maroon">
@@ -240,11 +246,16 @@ export function KalaCollabPanel({
               </div>
               <div>
                 <p className="label-caps text-[7px] text-muted-foreground">Dependency</p>
-                <p className="mt-0.5 flex items-center gap-1 text-[9px] text-ink/60">
-                  <GitBranch className="size-2.5" />
-                  {task.dependsOnPosition
-                    ? tasks.find((row) => row.position === task.dependsOnPosition)?.title ?? `After task ${task.dependsOnPosition}`
-                    : "Can start first"}
+                <p className="mt-0.5 flex items-start gap-1 text-[9px] text-ink/60">
+                  <GitBranch className="mt-0.5 size-2.5 shrink-0" />
+                  {(task.dependsOnPositions?.length
+                    ? task.dependsOnPositions
+                    : task.dependsOnPosition
+                      ? [task.dependsOnPosition]
+                      : []
+                  )
+                    .map((position) => tasks.find((row) => row.position === position)?.title ?? `Task ${position}`)
+                    .join(" + ") || "Can start first"}
                 </p>
               </div>
             </div>
@@ -304,7 +315,7 @@ export function KalaCollabPanel({
             </span>
           )}
           {plan.status === "ready" && (
-            <Button size="sm" className="rounded-full bg-emerald px-4 text-[10px] text-ivory" disabled={busy !== null} onClick={() => void run("approve-plan", () => approvePlan({ planId: plan._id }), "Collaboration plan approved.")}>
+            <Button size="sm" className="rounded-full bg-emerald px-4 text-[10px] text-ivory" disabled={busy !== null || overBudget} onClick={() => void run("approve-plan", () => approvePlan({ planId: plan._id }), "Collaboration plan approved.")}>
               {busy === "approve-plan" ? <Loader2 className="size-3.5 animate-spin" /> : <Handshake className="size-3.5" />}
               Approve collaboration plan
             </Button>
