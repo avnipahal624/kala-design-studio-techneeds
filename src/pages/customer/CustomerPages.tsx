@@ -225,6 +225,10 @@ export function CustomerRequestDetail() {
   const { requestId } = useParams();
   const navigate = useNavigate();
   const detail = useQuery(api.requests.getMine, requestId ? { requestId: requestId as Id<"customerRequests"> } : "skip");
+  const feasibilityReviews = useQuery(
+    api.feasibility.forRequest,
+    requestId ? { requestId: requestId as Id<"customerRequests"> } : "skip",
+  );
   const matches = useQuery(api.artisans.matchesForRequest, requestId ? { requestId: requestId as Id<"customerRequests"> } : "skip");
   const invite = useMutation(api.requests.inviteArtisans);
   const accept = useMutation(api.quotes.accept);
@@ -291,6 +295,30 @@ export function CustomerRequestDetail() {
           </section>
 
           <KalaCollabPanel requestId={request._id} requestStatus={request.status} />
+
+          {feasibilityReviews && feasibilityReviews.length > 0 && (
+            <section className="rounded-2xl border border-gold/40 bg-ivory/60 p-5">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div><p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-maroon">Artisan feasibility notes</p><h2 className="font-display text-xl font-semibold text-maroon">What the makers can actually produce</h2></div>
+                <ShieldCheck className="size-5 text-maroon/35" />
+              </div>
+              <div className="mt-3 space-y-2.5">
+                {feasibilityReviews.map((review) => (
+                  <article key={review._id} className="rounded-xl border border-maroon/12 bg-card p-3.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-[11px] font-semibold text-ink">{review.artisanName}</p>
+                      <span className={`rounded-full px-2 py-0.5 text-[8px] font-semibold uppercase tracking-wide ${review.verdict === "likely_feasible" ? "bg-emerald/10 text-emerald" : review.verdict === "needs_artisan_review" ? "bg-saffron/20 text-[#7a4f10]" : "bg-vermilion/10 text-vermilion"}`}>
+                        {review.verdict === "likely_feasible" ? "Likely feasible" : review.verdict === "needs_artisan_review" ? "Needs artisan review" : "Potentially impractical"}
+                      </span>
+                    </div>
+                    <p className="mt-1.5 whitespace-pre-line text-[11px] leading-relaxed text-ink/65">{review.note}</p>
+                    <p className="mt-1 text-[9px] text-muted-foreground">{review.estimatedDays ? `Indicative hand-work: ${review.estimatedDays} days · ` : ""}Artisan-confirmed note · {formatDate(review.updatedAt)}</p>
+                  </article>
+                ))}
+              </div>
+              <p className="mt-2 text-[9px] leading-relaxed text-muted-foreground">These notes are professional opinions from individual artisans. They complement, but do not replace, the rule-based feasibility check and do not guarantee price, deadline or production.</p>
+            </section>
+          )}
 
           <section className="rounded-2xl border border-maroon/15 bg-card p-5">
             <div className="flex items-center justify-between">
